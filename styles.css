@@ -1,0 +1,886 @@
+/* ─────────────  DESIGN TOKENS  ───────────── */
+:root {
+  --ink: #14130f;
+  --ink-soft: #54514a;
+  --ink-faint: #8c887f;
+  --paper: #ffffff;
+  --paper-raised: #ffffff;
+  --line: #ececec;
+  --accent: #14130f;
+
+  --logo-grey: #9aa0a6;
+
+  --tint-a: #f3f3f3;
+  --tint-b: #f1f4f3;
+  --tint-c: #f4f1f0;
+  --tint-d: #f0f1f4;
+
+  --font: "Open Runde", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+
+  --maxw: 1080px;
+  --gutter: clamp(20px, 5vw, 56px);
+  --radius: 16px;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font);
+  color: var(--ink);
+  background: var(--paper);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* ─────────────  HEADER (floating pill)  ───────────── */
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  padding: 16px var(--gutter);
+  transition: padding 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.5s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.4s ease;
+}
+
+/* Hidden state (used on mobile): slide the nav up out of view and fade it. */
+.site-header.nav-hidden {
+  transform: translateY(-130%);
+  opacity: 0;
+}
+
+.nav-pill {
+  max-width: var(--maxw);
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 10px 12px 10px 28px;
+  background: rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.04), 0 2px 6px rgba(0, 0, 0, 0.02);
+  border-radius: 999px;
+  /* EXPAND (destination = this base state): snappy. */
+  transition: max-width 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+    gap 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+    padding 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* ── Scrolled state: pill condenses but keeps all links ──
+   Animate to a concrete max-width (not `max-content`, which browsers
+   can't smoothly tween) so the pill glides shut and open.
+   COLLAPSE (destination = this state): slow, gentle glide. */
+.site-header.scrolled .nav-pill {
+  max-width: 380px;
+  gap: 20px;
+  padding: 7px 10px 7px 28px;
+  transition: max-width 1.1s cubic-bezier(0.65, 0, 0.35, 1),
+    gap 1.1s cubic-bezier(0.65, 0, 0.35, 1),
+    padding 1.1s cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+.site-header.scrolled {
+  transition: padding 1.1s cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+.site-header.scrolled .nav-cta {
+  padding: 7px 18px;
+}
+
+.wordmark {
+  font-weight: 700;
+  font-size: 17px;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.nav a {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--ink-soft);
+  padding: 8px 14px;
+  border-radius: 999px;
+  transition: color 0.2s, background 0.2s;
+}
+
+.nav a:not(.nav-cta):hover {
+  color: var(--ink);
+  background: #f6f6f6;
+}
+
+/* Active link — current section (set by click or scrollspy) */
+.nav a.active:not(.nav-cta) {
+  color: var(--ink);
+  background: #f0f0f0;
+}
+
+.nav-cta {
+  background: var(--accent);
+  color: #fff !important;
+  padding: 9px 20px;
+  transition: background 0.2s, transform 0.15s ease, box-shadow 0.15s,
+    padding 1.1s cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+.nav-cta:hover {
+  background: #2c2a25;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
+}
+
+.nav-cta:active {
+  transform: translateY(0) scale(0.97);
+  box-shadow: none;
+}
+
+/* ─────────────  LAYOUT  ───────────── */
+main {
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: 0 var(--gutter);
+}
+
+.section {
+  padding: clamp(64px, 11vw, 128px) 0;
+  position: relative;
+}
+
+/* Full-bleed divider line above each section (spans the whole viewport,
+   while the section content stays in the centered column). */
+.section::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: calc(50% - 50vw);
+  width: 100vw;
+  height: 1px;
+  background: var(--line);
+}
+
+.section-head {
+  margin-bottom: 48px;
+}
+
+.section-title {
+  font-size: clamp(28px, 4vw, 40px);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.section-note {
+  margin-top: 8px;
+  color: var(--ink-soft);
+  font-size: 17px;
+}
+
+/* ─────────────  HERO  ───────────── */
+.hero {
+  /* Opening frame fills the viewport: nav (92px) + hero + logo strip (96px)
+     together = 100svh, so the logo strip sits at the bottom of the first
+     screen. Hero content is centered in its remaining space. */
+  min-height: calc(100svh - 92px - 96px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  /* Extra bottom padding lifts the centered content up ~20px for better
+     optical balance (the logo strip below carries visual weight). */
+  padding: clamp(40px, 7vw, 72px) 0 calc(clamp(40px, 7vw, 72px) + 40px);
+}
+
+.hero-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 13px;
+  background: #f3f3f3;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink);
+  letter-spacing: 0.01em;
+}
+
+.tag-icon {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  color: var(--ink);
+}
+
+/* Flag emoji in place of a location icon */
+.tag-emoji {
+  font-size: 15px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.hero-title {
+  font-size: 30px;
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: -0.02em;
+  max-width: 28ch;
+}
+
+/* Highlighter marker behind a key word. Default = flat green with a soft,
+   organic blob shape. On hover, a hand-drawn pen underline draws itself in
+   under the word, and the cursor turns into a pointer (it links to the
+   Stepstone work). */
+.hl {
+  position: relative;
+  background-color: #c8f5a0;
+  color: inherit;
+  padding: 0.05em 0.28em;
+  margin: 0 -0.06em;
+  /* The blob shape, used as the default look. */
+  border-radius: 14px 10px 16px 12px / 12px 16px 10px 14px;
+  cursor: pointer;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+
+/* Pen-like underline that draws on under the word on hover. The SVG is a
+   slightly wavy hand-drawn stroke; we reveal it left→right by growing its
+   clip width. */
+.hl::after {
+  content: "";
+  position: absolute;
+  left: 0.28em;
+  right: 0.28em;
+  bottom: -0.16em;
+  height: 6px;
+  background-repeat: no-repeat;
+  background-position: left center;
+  background-size: 100% 100%;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 8' preserveAspectRatio='none'%3E%3Cpath d='M1 5 C 40 1, 70 7, 110 3 S 180 6, 199 3' fill='none' stroke='%2314130f' stroke-width='2.5' stroke-linecap='round'/%3E%3C/svg%3E");
+  /* Hidden by default: clipped to zero width from the left. */
+  clip-path: inset(0 100% 0 0);
+  transition: clip-path 0.5s cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+.hl:hover::after {
+  /* Pen draws across the full width. */
+  clip-path: inset(0 0 0 0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hl::after {
+    transition: none;
+  }
+}
+
+.hero-actions {
+  margin-top: 32px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  height: 44px;
+  padding: 0 22px;
+  border-radius: 999px;
+  font-size: 15px;
+  font-weight: 500;
+  transition: transform 0.15s ease, background 0.15s, border-color 0.15s,
+    box-shadow 0.15s;
+}
+
+.btn:active {
+  transform: scale(0.98);
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: #fff;
+}
+
+.btn-primary:hover {
+  background: #2c2a25;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
+}
+
+.btn-primary:active {
+  transform: translateY(0) scale(0.98);
+  box-shadow: none;
+}
+
+.btn-ghost {
+  border: 1px solid var(--line);
+  color: var(--ink);
+}
+
+.btn-ghost:hover {
+  border-color: var(--ink-faint);
+}
+
+/* ─────────────  LOGO MARQUEE  ───────────── */
+.logos {
+  /* full-bleed: break out of the centered main column */
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
+  padding: 24px 0;
+  overflow: hidden;
+  border-top: 1px solid rgba(0, 0, 0, 0.04);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+}
+
+/* The logo strip already draws a full-width divider below it, so suppress
+   the work section's own divider to avoid a doubled line. */
+#work.section::before {
+  display: none;
+}
+
+.marquee {
+  position: relative;
+  -webkit-mask-image: linear-gradient(
+    90deg,
+    transparent,
+    #000 10%,
+    #000 90%,
+    transparent
+  );
+  mask-image: linear-gradient(
+    90deg,
+    transparent,
+    #000 10%,
+    #000 90%,
+    transparent
+  );
+}
+
+.marquee-track {
+  display: flex;
+  align-items: center;
+  width: max-content;
+  --scroll-distance: -50%;
+  animation: scroll 40s linear infinite;
+}
+
+.marquee:hover .marquee-track {
+  animation-play-state: paused;
+}
+
+.logo-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  /* Equal side margins (not `gap`) so spacing is identical across the
+     loop seam — `gap` doesn't apply between the last and first item when
+     the track wraps, which leaves an empty void. */
+  margin: 0 59px;
+  transition: opacity 0.2s;
+}
+
+.logo-item img {
+  width: auto;
+  max-width: 160px;
+  object-fit: contain;
+  display: block;
+  /* Desaturate to grey while PRESERVING internal light/dark detail
+     (BMW roundel, Standard Bank flame). grayscale keeps tonal structure;
+     opacity lifts the whole thing to a uniform faint weight. */
+  filter: grayscale(1);
+  opacity: 0.4;
+  transition: opacity 0.2s;
+}
+
+.logo-item:hover img {
+  opacity: 0.7;
+}
+
+/* Solid single-colour marks read darker once greyscaled, so fade them a
+   little more to sit at the same weight as the detailed ones. */
+.logo-item img[alt="Meta"],
+.logo-item img[alt="Absa"],
+.logo-item img[alt="Foolproof"] {
+  opacity: 0.32;
+}
+
+.logo-item:hover img[alt="Meta"],
+.logo-item:hover img[alt="Absa"],
+.logo-item:hover img[alt="Foolproof"] {
+  opacity: 0.62;
+}
+
+/* Balanced by visual mass, not raw height. Padding is trimmed in the PNGs,
+   so these heights map directly to how big each mark actually looks.
+   Long wordmarks sit shorter (their width carries presence); compact and
+   square marks sit taller so they don't read as small. */
+
+/* Long horizontal wordmarks (ratio ~4–5). */
+.logo-item img[alt="Meta"] {
+  height: 26px;
+}
+
+/* Standard Bank has a shield + small text, so it reads smaller — bump it up. */
+.logo-item img[alt="Standard Bank"] {
+  height: 34px;
+}
+
+/* Medium wordmarks (ratio ~2.5–3.5). */
+.logo-item img[alt="Stepstone"],
+.logo-item img[alt="Foolproof"],
+.logo-item img[alt="Ogilvy"] {
+  height: 30px;
+}
+
+/* Square icon-marks (ratio ~1). */
+.logo-item img[alt="BMW"],
+.logo-item img[alt="Absa"] {
+  height: 46px;
+}
+
+/* Zalando is a portrait icon-over-wordmark lockup (taller than wide),
+   so it's sized a touch smaller to occupy similar visual space. */
+.logo-item img[alt="Zalando"] {
+  height: 44px;
+}
+
+@keyframes scroll {
+  to {
+    transform: translateX(var(--scroll-distance, -50%));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .marquee-track {
+    animation: none;
+    justify-content: center;
+    width: 100%;
+    flex-wrap: wrap;
+    row-gap: 36px;
+  }
+  /* No scrolling, so the duplicate row is redundant — hide it. */
+  .marquee-track .logo-item[aria-hidden="true"] {
+    display: none;
+  }
+}
+
+/* ─────────────  SELECTED WORK  ───────────── */
+.work-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: clamp(8px, 1vw, 12px);
+}
+
+.work-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.work-image {
+  position: relative;
+  aspect-ratio: 3 / 4;
+  border-radius: 4px;
+  overflow: hidden;
+  background: var(--tint-a);
+  margin-bottom: 14px;
+}
+.work-image[data-tint="b"] { background: var(--tint-b); }
+.work-image[data-tint="c"] { background: var(--tint-c); }
+.work-image[data-tint="d"] { background: var(--tint-d); }
+
+.work-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.work-item:hover .work-image img {
+  transform: scale(1.04);
+}
+
+.work-image-fallback {
+  display: none; /* shown via onerror when the image is missing */
+  position: absolute;
+  inset: 0;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 0 16px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ink-faint);
+}
+
+.work-meta {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.work-title {
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+
+.work-date {
+  flex-shrink: 0;
+  font-size: 12px;
+  color: var(--ink-faint);
+  white-space: nowrap;
+}
+
+/* On hover-capable devices (desktop), reveal the date only on card hover.
+   Touch devices keep it always visible. */
+@media (hover: hover) {
+  .work-date {
+    opacity: 0;
+    transition: opacity 0.25s ease;
+  }
+  .work-item:hover .work-date {
+    opacity: 1;
+  }
+}
+
+/* ─────────────  ABOUT  ───────────── */
+.about {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 32px;
+}
+
+/* Stage holds the photo plus the emojis that hide behind it. */
+.portrait-stage {
+  position: relative;
+  width: min(260px, 68vw);
+  height: min(260px, 68vw);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Emojis start hidden behind the centre of the photo, then fan out to their
+   target offsets with a springy bounce when the section scrolls into view. */
+.float-emoji {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 0;
+  font-size: clamp(24px, 5vw, 32px);
+  line-height: 1;
+  pointer-events: none;
+  transform: translate(-50%, -50%) scale(0.2);
+  opacity: 0;
+  transition: transform 0.7s cubic-bezier(0.34, 1.56, 0.64, 1),
+    opacity 0.35s ease;
+}
+
+.portrait-stage.revealed .float-emoji {
+  transform: translate(
+      calc(-50% + var(--x) * var(--fan, 1)),
+      calc(-50% + var(--y) * var(--fan, 1))
+    )
+    rotate(var(--r)) scale(1);
+  opacity: 1;
+}
+
+/* Stagger the fan-out (and the retract inherits reversed feel via delays). */
+.portrait-stage.revealed .float-emoji:nth-child(1) { transition-delay: 0.02s; }
+.portrait-stage.revealed .float-emoji:nth-child(2) { transition-delay: 0.06s; }
+.portrait-stage.revealed .float-emoji:nth-child(3) { transition-delay: 0.1s; }
+.portrait-stage.revealed .float-emoji:nth-child(4) { transition-delay: 0.14s; }
+.portrait-stage.revealed .float-emoji:nth-child(5) { transition-delay: 0.18s; }
+.portrait-stage.revealed .float-emoji:nth-child(6) { transition-delay: 0.22s; }
+.portrait-stage.revealed .float-emoji:nth-child(7) { transition-delay: 0.26s; }
+.portrait-stage.revealed .float-emoji:nth-child(8) { transition-delay: 0.3s; }
+
+@media (prefers-reduced-motion: reduce) {
+  .float-emoji {
+    transition: none;
+    display: none;
+  }
+}
+
+.about-portrait {
+  position: relative;
+  z-index: 1;
+  /* Explicit square (width AND height) so it stays a circle in the flex
+     column — aspect-ratio alone got overridden by the photo's proportions. */
+  width: min(260px, 68vw);
+  height: min(260px, 68vw);
+  border-radius: 50%;
+  /* White frame ring (the 18px padding is the visible rim). The inset shadow
+     lives on this container, so it falls on the RING and is hidden behind the
+     photo — the frame reads as recessed while the photo stays clean.
+     Negative spread keeps it a soft top-left arc rather than a full ring. */
+  background: #ffffff;
+  padding: 18px;
+  box-shadow: inset 5px 5px 11px -6px rgba(0, 0, 0, 0.16);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.about-portrait img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 20%;
+  border-radius: 50%;
+  display: block;
+}
+
+.about-portrait-fallback {
+  display: none; /* shown via onerror only when the image is missing */
+  width: 100%;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 0 20px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink-faint);
+}
+
+.about-body {
+  max-width: 46ch;
+}
+
+.about-body p {
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--ink-soft);
+}
+
+.about-body p + p {
+  margin-top: 14px;
+}
+
+/* ─────────────  EXPERIENCE  ───────────── */
+.timeline {
+  list-style: none;
+}
+
+.timeline-item {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 24px 0;
+  border-top: 1px solid var(--line);
+}
+
+.timeline-item:first-child {
+  border-top: none;
+}
+
+.timeline-role h3 {
+  font-size: 21px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.timeline-company {
+  font-size: 16px;
+  color: var(--ink-soft);
+}
+
+.timeline-period {
+  font-size: 15px;
+  color: var(--ink-faint);
+  white-space: nowrap;
+}
+
+/* ─────────────  CONTACT  ───────────── */
+.contact {
+  text-align: center;
+}
+
+.contact-title {
+  font-size: clamp(40px, 8vw, 84px);
+  font-weight: 600;
+  letter-spacing: -0.03em;
+}
+
+.contact-sub {
+  margin-top: 16px;
+  font-size: 18px;
+  color: var(--ink-soft);
+}
+
+.contact-email {
+  display: inline-block;
+  margin-top: 32px;
+  font-size: clamp(20px, 3vw, 30px);
+  font-weight: 500;
+  border-bottom: 2px solid var(--line);
+  padding-bottom: 4px;
+  transition: border-color 0.15s;
+}
+
+.contact-email:hover {
+  border-color: var(--ink);
+}
+
+.contact-links {
+  margin-top: 36px;
+  display: flex;
+  justify-content: center;
+  gap: 28px;
+}
+
+.contact-links a {
+  font-size: 16px;
+  color: var(--ink-soft);
+  transition: color 0.15s;
+}
+
+.contact-links a:hover {
+  color: var(--ink);
+}
+
+/* ─────────────  FOOTER  ───────────── */
+.site-footer {
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: 32px var(--gutter) 56px;
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+  color: var(--ink-faint);
+  position: relative;
+}
+
+/* Full-bleed divider above the footer. */
+.site-footer::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: calc(50% - 50vw);
+  width: 100vw;
+  height: 1px;
+  background: var(--line);
+}
+
+.site-footer a:hover {
+  color: var(--ink);
+}
+
+/* ─────────────  RESPONSIVE  ───────────── */
+/* Mobile-only line break in the hero title (hidden on larger screens). */
+.break-mobile {
+  display: none;
+}
+
+@media (max-width: 720px) {
+  .break-mobile {
+    display: inline;
+  }
+  .nav {
+    gap: 16px;
+  }
+  .nav a:not(.nav-cta) {
+    display: none;
+  }
+
+  /* On mobile the pill itself stays static (no collapse/expand), but the
+     header still slides + fades smoothly when hiding/revealing on scroll.
+     Both .site-header and .site-header.scrolled carry the same transition so
+     the transform/opacity animate in AND out even while scrolled. */
+  .site-header,
+  .site-header.scrolled {
+    transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1),
+      opacity 0.45s ease;
+  }
+  .nav-pill,
+  .site-header.scrolled .nav-pill,
+  .nav-cta,
+  .site-header.scrolled .nav-cta {
+    transition: none;
+  }
+  .site-header.scrolled {
+    padding-top: 16px;
+    padding-bottom: 16px;
+  }
+  .site-header.scrolled .nav-pill {
+    max-width: var(--maxw);
+    gap: 16px;
+    padding: 10px 12px 10px 28px;
+  }
+  .site-header.scrolled .nav-cta {
+    padding: 8px 14px;
+  }
+  /* Work grid: 2 columns on tablet/large phones. */
+  .work-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 28px 20px;
+  }
+  .about {
+    grid-template-columns: 1fr;
+  }
+  .about-portrait {
+    max-width: 260px;
+    margin: 0 auto; /* center the profile pic in the column on mobile */
+  }
+  .timeline-item {
+    flex-direction: column;
+    gap: 4px;
+  }
+}
+
+/* Small phones — stack the work grid to a single column. */
+@media (max-width: 520px) {
+  .work-grid {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+  .work-image {
+    aspect-ratio: 3 / 2;
+  }
+
+  /* Shrink the photo and pull the emoji fan in so the whole composition
+     sits neatly within a narrow viewport. */
+  .portrait-stage,
+  .about-portrait {
+    width: min(210px, 46vw);
+    height: min(210px, 46vw);
+  }
+  .portrait-stage {
+    --fan: 0.72;
+    /* extra room so the top emoji clears the section divider above */
+    margin-top: 32px;
+  }
+}
