@@ -7,6 +7,7 @@
   --paper-raised: #ffffff;
   --line: #ececec;
   --accent: #14130f;
+  --about-bg: #f8f8f9;
 
   --logo-grey: #9aa0a6;
 
@@ -573,6 +574,23 @@ main {
 }
 
 /* ─────────────  ABOUT  ───────────── */
+/* Full-bleed very-light-grey band. Content stays in the centred column via
+   the horizontal gutter padding. */
+#about.section {
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
+  padding-left: var(--gutter);
+  padding-right: var(--gutter);
+  background: var(--about-bg);
+}
+
+/* No dividers directly above or below the About band — the colour change
+   separates it. (Above = About's own line; below = the Experience line.) */
+#about.section::before,
+#experience.section::before {
+  display: none;
+}
+
 .about {
   display: flex;
   flex-direction: column;
@@ -641,13 +659,14 @@ main {
   width: min(260px, 68vw);
   height: min(260px, 68vw);
   border-radius: 50%;
-  /* White frame ring (the 18px padding is the visible rim). The inset shadow
-     lives on this container, so it falls on the RING and is hidden behind the
-     photo — the frame reads as recessed while the photo stays clean.
-     Negative spread keeps it a soft top-left arc rather than a full ring. */
-  background: #ffffff;
+  /* Raised neumorphic frame (the 18px padding is the visible rim). The frame
+     matches the section bg so it blends, and dual OUTER shadows sculpt it into
+     a soft puffed-out button: a light highlight from the top-left and a darker
+     shadow to the bottom-right. */
+  background: var(--about-bg);
   padding: 18px;
-  box-shadow: inset 5px 5px 11px -6px rgba(0, 0, 0, 0.16);
+  box-shadow: -9px -9px 18px rgba(255, 255, 255, 0.9),
+    9px 9px 20px rgba(174, 174, 192, 0.42);
   display: flex;
   align-items: center;
   justify-content: center;
