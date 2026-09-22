@@ -1226,6 +1226,14 @@ body.game-playing {
   }
 }
 
+/* Portrait tablets (e.g. iPad) — show the work grid as a 2×2. */
+@media (min-width: 721px) and (max-width: 1024px) and (orientation: portrait) {
+  .work-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 40px 28px;
+  }
+}
+
 /* Small phones — stack the work grid to a single column. */
 @media (max-width: 520px) {
   .work-grid {
