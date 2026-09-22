@@ -227,6 +227,9 @@ if (track) {
     "Make it viral", "Trust the process", "Pixel perfect", "Add drop shadow",
     "Delight users", "Think bigger", "Make it edgy", "Elevate it",
     "Can it pop?", "More engaging", "Just one tweak", "Make it premium",
+    "Move it up", "Just vibes", "Make it clean", "Add motion",
+    "More contrast", "Feels generic", "Make it fun", "Round the corners",
+    "Bolder type", "Not quite it", "Add some flair", "Make it iconic",
   ];
 
   // ---- state ----
@@ -292,7 +295,7 @@ if (track) {
     // Phrase chips laid out in rows. Widths vary with the text, so each row
     // is measured and centred; the whole block then slides as one unit.
     const cols = W > 900 ? 4 : W > 620 ? 3 : 2;
-    const rows = 3;
+    const rows = 6;
     const tints = ["#eef7e6", "#e9f0f7", "#f7ecec", "#f2eef7", "#f6f4e8"];
     const fontSize = Math.round(Math.max(13, Math.min(19, W / 62)));
     invFont = "600 " + fontSize + 'px "Open Runde", system-ui, sans-serif';
@@ -300,8 +303,8 @@ if (track) {
     const padX = Math.round(fontSize * 0.9);
     const chipH = fontSize + Math.round(fontSize * 1.1);
     const gapX = Math.round(fontSize * 1.1);
-    const gapY = Math.round(fontSize * 1.5);
-    const startY = Math.max(90, H * 0.14);
+    const gapY = Math.round(fontSize * 1.2);
+    const startY = Math.max(78, H * 0.12);
 
     // Pick a fresh, shuffled set of phrases each game.
     const pool = PHRASES.slice();
