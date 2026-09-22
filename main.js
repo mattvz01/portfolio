@@ -195,18 +195,13 @@ if (track) {
       c.fillStyle = col;
       c.fillRect(x * px, y * px, w * px, h * px);
     };
-    // Black silhouette — one span per row gives the rounded corners.
-    const outer = [
+    // Body silhouette — one span per row gives the rounded corners. No black
+    // outline: light grey up top, darker band lower down.
+    const body = [
       [0, 4, 19], [1, 3, 20], [2, 2, 21], [3, 1, 22], [4, 1, 22], [5, 1, 22],
       [6, 1, 22], [7, 1, 22], [8, 1, 22], [9, 2, 21], [10, 3, 20], [11, 4, 19],
     ];
-    outer.forEach(([row, a, b]) => fill(a, row, b - a + 1, 1, PAD_PX.K));
-    // Grey interior — light up top, darker band lower down.
-    const inner = [
-      [1, 4, 19], [2, 3, 20], [3, 2, 21], [4, 2, 21], [5, 2, 21], [6, 2, 21],
-      [7, 2, 21], [8, 2, 21], [9, 3, 20], [10, 4, 19],
-    ];
-    inner.forEach(([row, a, b]) =>
+    body.forEach(([row, a, b]) =>
       fill(a, row, b - a + 1, 1, row >= 7 ? PAD_PX.D : PAD_PX.L)
     );
     // D-pad (black plus — vertical arm sits symmetric around the crossbar)
