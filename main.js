@@ -1,6 +1,31 @@
 // Auto-update the footer year so it never goes stale.
 document.getElementById("year").textContent = new Date().getFullYear();
 
+// Keep --header-h / --logos-h in sync with the real header and logo-strip
+// heights so the hero sizes itself to leave the logo strip flush at the bottom
+// of the first screen (at every viewport width).
+const headerEl = document.querySelector(".site-header");
+const logosEl = document.querySelector(".logos");
+if (headerEl) {
+  const setFrameVars = () => {
+    const root = document.documentElement.style;
+    root.setProperty("--header-h", headerEl.offsetHeight + "px");
+    if (logosEl) root.setProperty("--logos-h", logosEl.offsetHeight + "px");
+  };
+  setFrameVars();
+  window.addEventListener("load", setFrameVars);
+  window.addEventListener("resize", setFrameVars);
+}
+
+// "Back to top" links (footer + wordmark) always return to the true top so the
+// header resets to its default, expanded state.
+document.querySelectorAll('a[href="#top"]').forEach((link) => {
+  link.addEventListener("click", (e) => {
+    e.preventDefault();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  });
+});
+
 // About photo: fan the emojis out from behind the portrait when the stage
 // scrolls into view, and retract them when it scrolls away (either direction).
 const portraitStage = document.querySelector(".portrait-stage");
