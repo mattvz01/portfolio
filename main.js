@@ -51,6 +51,27 @@ document.querySelectorAll('a[href="#top"]').forEach((link) => {
   });
 });
 
+// Desktop: vertically centre the floating controller on the hero title (its
+// middle line). Robust to wrapping/height changes; cleared on tablet/mobile
+// where the controller sits inline with the tags.
+const launcherAlignEl = document.getElementById("game-launcher");
+const heroAlignEl = document.querySelector(".hero");
+const heroTitleAlignEl = document.querySelector(".hero-title");
+if (launcherAlignEl && heroAlignEl && heroTitleAlignEl) {
+  const alignLauncher = () => {
+    if (window.innerWidth > 1024) {
+      const hr = heroAlignEl.getBoundingClientRect();
+      const tr = heroTitleAlignEl.getBoundingClientRect();
+      launcherAlignEl.style.top = (tr.top + tr.bottom) / 2 - hr.top + "px";
+    } else {
+      launcherAlignEl.style.top = "";
+    }
+  };
+  alignLauncher();
+  window.addEventListener("load", alignLauncher);
+  window.addEventListener("resize", alignLauncher);
+}
+
 // About photo: fan the emojis out from behind the portrait when the stage
 // scrolls into view, and retract them when it scrolls away (either direction).
 const portraitStage = document.querySelector(".portrait-stage");
