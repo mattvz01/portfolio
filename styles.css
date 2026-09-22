@@ -233,9 +233,30 @@ main {
   flex-direction: column;
   justify-content: center;
   position: relative; /* anchor for the game launcher on the right */
+  isolation: isolate; /* own stacking context for the dot canvas layering */
   /* Extra bottom padding lifts the centered content up ~20px for better
      optical balance (the logo strip below carries visual weight). */
   padding: clamp(40px, 7vw, 72px) 0 calc(clamp(40px, 7vw, 72px) + 40px);
+}
+
+/* Interactive dot field: sits behind the hero content, never intercepts input.
+   Full-bleed so the grid extends past the content max-width to the viewport. */
+.hero-dots {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: calc(50% - 50vw);
+  width: 100vw;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* Keep all hero content cleanly above the dot canvas. */
+.hero-title,
+.hero-actions {
+  position: relative;
+  z-index: 1;
 }
 
 .hero-tags {
@@ -246,6 +267,8 @@ main {
 }
 
 .tag {
+  position: relative;
+  z-index: 1;
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -368,11 +391,13 @@ main {
 
 .btn-ghost {
   border: 1px solid var(--line);
+  background: #fff;
   color: var(--ink);
 }
 
 .btn-ghost:hover {
-  border-color: var(--ink-faint);
+  background: #f0f0f0;
+  border-color: transparent;
 }
 
 /* ─────────────  LOGO MARQUEE  ───────────── */
@@ -610,6 +635,23 @@ main {
   padding-left: var(--gutter);
   padding-right: var(--gutter);
   background: var(--about-bg);
+  isolation: isolate; /* own stacking context for the dot canvas layering */
+}
+
+/* Interactive dot field behind the About content; never intercepts input. */
+.about-dots {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* Keep the photo, emojis and copy cleanly above the dot canvas. */
+.about {
+  position: relative;
+  z-index: 1;
 }
 
 /* No dividers directly above or below the About band — the colour change
@@ -851,9 +893,10 @@ main {
    hero. No label — people click it out of curiosity. */
 .game-launcher {
   position: absolute;
-  right: clamp(8px, 3vw, 56px);
+  right: clamp(24px, 5vw, 76px);
   top: 50%;
   transform: translateY(-50%);
+  z-index: 1; /* above the hero dot canvas */
   padding: 20px;
   background: none;
   border: 0;
@@ -876,6 +919,7 @@ main {
   height: auto;
   image-rendering: pixelated;
   image-rendering: crisp-edges;
+  filter: drop-shadow(0 5px 8px rgba(20, 19, 15, 0.1));
 }
 
 /* Hover: the controller rumbles like a real gamepad. */
@@ -927,9 +971,10 @@ main {
    with the hero tags, matched to their height. */
 @media (max-width: 1024px) {
   .game-launcher {
-    position: static;
+    position: relative; /* relative (not static) so z-index keeps it above the dots */
+    inset: auto; /* clear the desktop right/top offsets so flex gap governs spacing */
     transform: none;
-    margin: 0;
+    margin: 0; /* rely on the hero-tags flex gap so spacing matches the tags */
     padding: 0;
     display: inline-flex;
     align-items: center;

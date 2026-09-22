@@ -701,3 +701,230 @@ if (track) {
 
   window.addEventListener("resize", () => { if (running) resize(); });
 })();
+
+/* ─────────────  DOT FIELD  ─────────────
+   A precise dot grid behind a section, focused on an element. Two influence
+   fields: visibility (alpha) radiates from an eased point that follows the
+   cursor and rests on the focal element; the lime-green tint concentrates
+   around the focal element (and lifts on hover of an optional rumble element,
+   when nearby dots also jitter). The grid never moves — only colour/visibility
+   (and the local rumble). Canvas + rAF; only near-field dots drawn. Static on
+   touch / reduced-motion. */
+function createDotField(config) {
+  const section = config.section;
+  const canvas = config.canvas;
+  const focalEl = config.focal;
+  const rumbleEl = config.rumbleEl || null;
+  if (!section || !canvas) return;
+  const ctx = canvas.getContext("2d");
+
+  const fine = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  const GREEN = [150, 222, 92]; // lime, same family as the Stepstone highlight
+  const GREY = [178, 183, 190]; // neutral light grey
+  const SPACING = 22; // grid pitch
+  const DOT_R = 1.2; // dot radius (a touch smaller than before)
+  const FIELD = config.field || 400; // visibility radius around the eased centre
+  const GREEN_FIELD = config.greenField || 310; // green-tint radius (around focal)
+  const RUMBLE_R = config.rumbleR || 150; // dots within this of focal can rumble
+  const MAX_ALPHA = 0.8;
+
+  let W = 0, H = 0, dpr = 1;
+  let dots = [];
+  const focal = { x: 0, y: 0 };
+  const target = { x: 0, y: 0 };
+  const centre = { x: 0, y: 0 };
+  let seeded = false;
+  let mouseInside = false;
+  let rumble = 0, rumbleTarget = 0;
+  let raf = 0, running = false;
+  let crect = null; // cached canvas rect (avoids layout thrash on mousemove)
+
+  const lerp = (a, b, t) => a + (b - a) * t;
+  const smooth = (e0, e1, x) => {
+    const t = Math.max(0, Math.min(1, (x - e0) / (e1 - e0)));
+    return t * t * (3 - 2 * t);
+  };
+
+  function build() {
+    // Base everything on the canvas box (it may be full-bleed, wider than the
+    // section) so the grid can extend beyond the content max-width.
+    const rect = canvas.getBoundingClientRect();
+    crect = rect;
+    W = rect.width;
+    H = rect.height;
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    canvas.width = Math.round(W * dpr);
+    canvas.height = Math.round(H * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+    dots = [];
+    const ox = (W % SPACING) / 2;
+    const oy = (H % SPACING) / 2;
+    for (let y = oy; y <= H; y += SPACING) {
+      for (let x = ox; x <= W; x += SPACING) {
+        dots.push({ x, y, seed: Math.random() * Math.PI * 2 });
+      }
+    }
+
+    if (focalEl) {
+      const fr = focalEl.getBoundingClientRect();
+      focal.x = fr.left - rect.left + fr.width / 2;
+      focal.y = fr.top - rect.top + fr.height / 2;
+    } else {
+      focal.x = W / 2;
+      focal.y = H / 2;
+    }
+    if (!mouseInside) {
+      target.x = focal.x;
+      target.y = focal.y;
+    }
+    if (!seeded) {
+      centre.x = focal.x;
+      centre.y = focal.y;
+      seeded = true;
+    }
+  }
+
+  function paint(now, animate) {
+    if (animate) {
+      centre.x = lerp(centre.x, target.x, 0.09);
+      centre.y = lerp(centre.y, target.y, 0.09);
+      rumble = lerp(rumble, rumbleTarget, 0.12);
+    } else {
+      centre.x = focal.x;
+      centre.y = focal.y;
+      rumble = 0;
+    }
+
+    ctx.clearRect(0, 0, W, H);
+    const time = now / 1000;
+    const fieldSq = FIELD * FIELD;
+
+    for (let i = 0; i < dots.length; i++) {
+      const d = dots[i];
+      const mdx = d.x - centre.x;
+      const mdy = d.y - centre.y;
+      const mSq = mdx * mdx + mdy * mdy;
+      if (mSq > fieldSq) continue;
+      const mt = 1 - Math.sqrt(mSq) / FIELD;
+      let alpha = mt * mt * MAX_ALPHA * (1 + 0.3 * rumble);
+      if (alpha < 0.012) continue;
+
+      const cdx = d.x - focal.x;
+      const cdy = d.y - focal.y;
+      const cDist = Math.sqrt(cdx * cdx + cdy * cdy);
+      const ct = 1 - cDist / GREEN_FIELD;
+      const green = smooth(0.25, 0.9, ct + 0.18 * rumble);
+      const r = (GREY[0] + (GREEN[0] - GREY[0]) * green) | 0;
+      const g = (GREY[1] + (GREEN[1] - GREY[1]) * green) | 0;
+      const b = (GREY[2] + (GREEN[2] - GREY[2]) * green) | 0;
+
+      let px = d.x;
+      let py = d.y;
+      if (rumble > 0.001 && cDist < RUMBLE_R) {
+        const rf = (1 - cDist / RUMBLE_R) * rumble;
+        const amp = 1.8 * rf;
+        px += Math.sin(time * 27 + d.seed) * amp;
+        py += Math.cos(time * 23 + d.seed * 1.7) * amp;
+      }
+
+      ctx.globalAlpha = alpha > 1 ? 1 : alpha;
+      ctx.fillStyle = "rgb(" + r + "," + g + "," + b + ")";
+      ctx.beginPath();
+      ctx.arc(px, py, DOT_R, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  function frame(now) {
+    if (!running) return;
+    paint(now, true);
+    raf = requestAnimationFrame(frame);
+  }
+  function start() {
+    if (running) return;
+    running = true;
+    raf = requestAnimationFrame(frame);
+  }
+  function stop() {
+    running = false;
+    cancelAnimationFrame(raf);
+  }
+
+  build();
+
+  // Touch devices (mobile/tablet): no dot field at all.
+  if (!fine) return;
+
+  // Desktop with reduced motion: a single static field, no animation.
+  if (reduce) {
+    paint(performance.now(), false);
+    let t;
+    window.addEventListener("resize", () => {
+      clearTimeout(t);
+      t = setTimeout(() => {
+        build();
+        paint(performance.now(), false);
+      }, 150);
+    });
+    return;
+  }
+
+  // Track the cursor across the whole canvas band (full-bleed on the hero), and
+  // ease back to the focal element when it leaves. Cached rect avoids reflow.
+  const refreshRect = () => (crect = canvas.getBoundingClientRect());
+  window.addEventListener("scroll", refreshRect, { passive: true });
+  window.addEventListener(
+    "mousemove",
+    (e) => {
+      if (!crect) return;
+      const x = e.clientX - crect.left;
+      const y = e.clientY - crect.top;
+      if (x >= 0 && x <= crect.width && y >= 0 && y <= crect.height) {
+        target.x = x;
+        target.y = y;
+        mouseInside = true;
+      } else if (mouseInside) {
+        mouseInside = false;
+        target.x = focal.x;
+        target.y = focal.y;
+      }
+    },
+    { passive: true }
+  );
+  if (rumbleEl) {
+    rumbleEl.addEventListener("mouseenter", () => (rumbleTarget = 1));
+    rumbleEl.addEventListener("mouseleave", () => (rumbleTarget = 0));
+  }
+
+  let rt;
+  window.addEventListener("resize", () => {
+    clearTimeout(rt);
+    rt = setTimeout(build, 150);
+  });
+
+  // Only animate while the section is on screen.
+  const io = new IntersectionObserver(
+    (entries) => entries.forEach((en) => (en.isIntersecting ? start() : stop())),
+    { threshold: 0 }
+  );
+  io.observe(section);
+}
+
+// Hero: dot field focused on the pixel controller (rumbles on hover).
+createDotField({
+  section: document.querySelector(".hero"),
+  canvas: document.getElementById("hero-dots"),
+  focal: document.getElementById("game-launcher"),
+  rumbleEl: document.getElementById("game-launcher"),
+});
+
+// About: dot field focused on the portrait photo (cursor-follow only).
+createDotField({
+  section: document.getElementById("about"),
+  canvas: document.getElementById("about-dots"),
+  focal: document.querySelector(".about-portrait"),
+});
