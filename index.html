@@ -34,7 +34,14 @@
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/@fontsource/open-runde@latest/700.css"
     />
-    <link rel="stylesheet" href="styles.css?v=79" />
+    <!-- Retro pixel font, used only by the Logo Invaders mini-game -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css?v=89" />
   </head>
   <body>
     <!-- ─────────────  HEADER / NAV  ───────────── -->
@@ -49,7 +56,7 @@
             target="_blank"
             rel="noopener"
             class="nav-cta"
-            >LinkedIn</a
+            >Reach out</a
           >
         </nav>
       </div>
@@ -67,6 +74,25 @@
             <span class="tag-emoji" role="img" aria-label="Briefcase">💼</span>
             15 YOE
           </span>
+
+          <!-- Easter egg: a flat pixel-art controller (rumbles on hover) that
+               launches a mini-game. Floats top-right on desktop; sits inline
+               with the tags on tablet/mobile. -->
+          <button
+            class="game-launcher"
+            id="game-launcher"
+            type="button"
+            aria-label="Play a hidden mini game"
+          >
+            <span class="game-launcher-inner">
+              <canvas
+                class="game-launcher-pad"
+                width="120"
+                height="60"
+                aria-hidden="true"
+              ></canvas>
+            </span>
+          </button>
         </div>
         <h1 class="hero-title">
           Matt is a Design Leader<br class="break-mobile" />
@@ -252,11 +278,22 @@
 
     </main>
 
+    <!-- ─────────────  LOGO INVADERS (mini-game overlay)  ───────────── -->
+    <div id="game-stage" class="game-stage" aria-hidden="true">
+      <canvas id="invaders-canvas"></canvas>
+      <div class="game-hud">
+        <span class="game-score" id="game-score">SCORE 0000</span>
+        <span class="game-lives" id="game-lives"></span>
+        <button class="game-exit" id="game-exit" type="button">× EXIT</button>
+      </div>
+      <div class="game-msg" id="game-msg" aria-live="polite"></div>
+    </div>
+
     <footer class="site-footer">
       <span>© <span id="year"></span> Matt van Zyl</span>
       <a href="#top">Back to top ↑</a>
     </footer>
 
-    <script src="main.js?v=50"></script>
+    <script src="main.js?v=89"></script>
   </body>
 </html>

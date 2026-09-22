@@ -134,3 +134,522 @@ if (track) {
     resizeTimer = setTimeout(setup, 200);
   });
 }
+
+/* ─────────────  LOGO INVADERS  ─────────────
+   A tiny Space-Invaders riff hidden behind the pixel ship in the hero.
+   Click the ship → the page becomes an arcade where you shoot down the
+   company logos before they land. Self-contained; no dependencies. */
+(function () {
+  const launcher = document.getElementById("game-launcher");
+  const stage = document.getElementById("game-stage");
+  const canvas = document.getElementById("invaders-canvas");
+  if (!launcher || !stage || !canvas) return;
+
+  const ctx = canvas.getContext("2d");
+  const scoreEl = document.getElementById("game-score");
+  const livesEl = document.getElementById("game-lives");
+  const exitBtn = document.getElementById("game-exit");
+  const msgEl = document.getElementById("game-msg");
+
+  // Pixel-ship sprite, shared by the launcher icon and the in-game player.
+  const SHIP = [
+    "     D     ",
+    "    DGD    ",
+    "    DGD    ",
+    "   DGGGD   ",
+    "   DBGBD   ",
+    "  DGGGGGD  ",
+    "  DGWGWGD  ",
+    " DDGGGGGDD ",
+    " D DGGGD D ",
+    " D  DGD  D ",
+    "     F     ",
+    "    FFF    ",
+  ];
+  const PAL = { D: "#14130f", G: "#a8e86b", W: "#ffffff", F: "#ff9a3c", B: "#c8f5a0" };
+  const SHIP_COLS = SHIP[0].length;
+  const SHIP_ROWS = SHIP.length;
+  function drawShip(c, x, y, px) {
+    for (let r = 0; r < SHIP_ROWS; r++) {
+      const row = SHIP[r];
+      for (let col = 0; col < SHIP_COLS; col++) {
+        const fill = PAL[row[col]];
+        if (!fill) continue;
+        c.fillStyle = fill;
+        c.fillRect(x + col * px, y + r * px, px, px);
+      }
+    }
+  }
+
+  // Flat pixel-art game controller for the launcher icon (grey body, black
+   // outline, colour button cross — drawn on a 24×14 pixel grid).
+  const PAD_PX = {
+    K: "#1b1b1b", L: "#ccd1d6", D: "#a8aeb4",
+    B: "#34a8dd", G: "#36b39a", R: "#e0362b", Y: "#f2ce1e",
+  };
+  const padCanvas = launcher.querySelector(".game-launcher-pad");
+  if (padCanvas) {
+    const c = padCanvas.getContext("2d");
+    const px = Math.floor(padCanvas.width / 24);
+    const fill = (x, y, w, h, col) => {
+      c.fillStyle = col;
+      c.fillRect(x * px, y * px, w * px, h * px);
+    };
+    // Black silhouette — one span per row gives the rounded corners.
+    const outer = [
+      [0, 4, 19], [1, 3, 20], [2, 2, 21], [3, 1, 22], [4, 1, 22], [5, 1, 22],
+      [6, 1, 22], [7, 1, 22], [8, 1, 22], [9, 2, 21], [10, 3, 20], [11, 4, 19],
+    ];
+    outer.forEach(([row, a, b]) => fill(a, row, b - a + 1, 1, PAD_PX.K));
+    // Grey interior — light up top, darker band lower down.
+    const inner = [
+      [1, 4, 19], [2, 3, 20], [3, 2, 21], [4, 2, 21], [5, 2, 21], [6, 2, 21],
+      [7, 2, 21], [8, 2, 21], [9, 3, 20], [10, 4, 19],
+    ];
+    inner.forEach(([row, a, b]) =>
+      fill(a, row, b - a + 1, 1, row >= 7 ? PAD_PX.D : PAD_PX.L)
+    );
+    // D-pad (black plus — vertical arm sits symmetric around the crossbar)
+    fill(5, 4, 2, 4, PAD_PX.K);
+    fill(4, 5, 4, 2, PAD_PX.K);
+    // Colour cross: blue top, green left, red right, yellow bottom
+    fill(16, 3, 2, 2, PAD_PX.B);
+    fill(14, 5, 2, 2, PAD_PX.G);
+    fill(18, 5, 2, 2, PAD_PX.R);
+    fill(16, 7, 2, 2, PAD_PX.Y);
+  }
+
+  // Cliché design feedback — the phrases you get to shoot down (≤ 3 words).
+  const PHRASES = [
+    "Make it pop", "Bigger logo", "More white space", "Make it modern",
+    "Add a gradient", "Needs more punch", "Make it sexy", "Less is more",
+    "Jazz it up", "On brand?", "Ship it", "Simplify it",
+    "Make it viral", "Trust the process", "Pixel perfect", "Add drop shadow",
+    "Delight users", "Think bigger", "Make it edgy", "Elevate it",
+    "Can it pop?", "More engaging", "Just one tweak", "Make it premium",
+  ];
+
+  // ---- state ----
+  let W = 0, H = 0, dpr = 1;
+  let running = false, raf = 0, lastT = 0, gameState = "ready";
+  let player, bullets, invaders, bombs, particles, stars;
+  let invDir, invStepDown, killed, total, score, lives, invuln, fireCD, bombCD;
+  let blockX = 0, invFont = '600 16px "Open Runde", system-ui, sans-serif';
+  const keys = { left: false, right: false, fire: false };
+  let pointerX = null, pointerDown = false;
+
+  const pad = (n) => String(n).padStart(4, "0");
+
+  function resize() {
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    W = stage.clientWidth;
+    H = stage.clientHeight;
+    canvas.width = Math.round(W * dpr);
+    canvas.height = Math.round(H * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+
+  function makeStars() {
+    stars = [];
+    const n = Math.round((W * H) / 11000);
+    for (let i = 0; i < n; i++) {
+      stars.push({
+        x: Math.random() * W,
+        y: Math.random() * H,
+        s: Math.random() * 1.6 + 0.4,
+        v: Math.random() * 16 + 6,
+      });
+    }
+  }
+
+  function roundRect(c, x, y, w, h, r) {
+    c.beginPath();
+    c.moveTo(x + r, y);
+    c.arcTo(x + w, y, x + w, y + h, r);
+    c.arcTo(x + w, y + h, x, y + h, r);
+    c.arcTo(x, y + h, x, y, r);
+    c.arcTo(x, y, x + w, y, r);
+    c.closePath();
+  }
+
+  function initGame() {
+    resize();
+    const shipPx = Math.max(3, Math.round(Math.min(W, H) / 150));
+    player = {
+      px: shipPx,
+      w: SHIP_COLS * shipPx,
+      h: SHIP_ROWS * shipPx,
+      x: 0,
+      y: H - Math.max(70, H * 0.12),
+      speed: 460,
+    };
+    player.x = W / 2 - player.w / 2;
+
+    bullets = [];
+    bombs = [];
+    particles = [];
+
+    // Phrase chips laid out in rows. Widths vary with the text, so each row
+    // is measured and centred; the whole block then slides as one unit.
+    const cols = W > 900 ? 4 : W > 620 ? 3 : 2;
+    const rows = 3;
+    const tints = ["#eef7e6", "#e9f0f7", "#f7ecec", "#f2eef7", "#f6f4e8"];
+    const fontSize = Math.round(Math.max(13, Math.min(19, W / 62)));
+    invFont = "600 " + fontSize + 'px "Open Runde", system-ui, sans-serif';
+    ctx.font = invFont;
+    const padX = Math.round(fontSize * 0.9);
+    const chipH = fontSize + Math.round(fontSize * 1.1);
+    const gapX = Math.round(fontSize * 1.1);
+    const gapY = Math.round(fontSize * 1.5);
+    const startY = Math.max(90, H * 0.14);
+
+    // Pick a fresh, shuffled set of phrases each game.
+    const pool = PHRASES.slice();
+    for (let i = pool.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [pool[i], pool[j]] = [pool[j], pool[i]];
+    }
+
+    invaders = [];
+    let picked = 0;
+    for (let r = 0; r < rows; r++) {
+      // Build this row's chips, measure them, then centre the row.
+      const rowChips = [];
+      let rowW = 0;
+      for (let c = 0; c < cols; c++) {
+        const phrase = pool[picked % pool.length];
+        picked++;
+        const w = Math.ceil(ctx.measureText(phrase).width) + padX * 2;
+        rowChips.push({ phrase, w });
+        rowW += w + (c > 0 ? gapX : 0);
+      }
+      let cx = (W - rowW) / 2;
+      for (let c = 0; c < cols; c++) {
+        const rc = rowChips[c];
+        invaders.push({
+          baseX: cx,
+          y: startY + r * (chipH + gapY),
+          w: rc.w,
+          h: chipH,
+          alive: true,
+          phrase: rc.phrase,
+          tint: tints[(r * cols + c) % tints.length],
+        });
+        cx += rc.w + gapX;
+      }
+    }
+    total = invaders.length;
+    killed = 0;
+    blockX = 0;
+    invDir = 1;
+    invStepDown = chipH * 0.55;
+    score = 0;
+    lives = 3;
+    invuln = 0;
+    fireCD = 0;
+    bombCD = 1.4;
+    makeStars();
+    gameState = "ready";
+    updateHUD();
+    showStart();
+  }
+
+  function spawnExplosion(x, y, color) {
+    for (let i = 0; i < 16; i++) {
+      const a = Math.random() * Math.PI * 2;
+      const sp = 60 + Math.random() * 200;
+      particles.push({
+        x, y,
+        vx: Math.cos(a) * sp,
+        vy: Math.sin(a) * sp,
+        life: 0.45 + Math.random() * 0.4,
+        color: Math.random() < 0.5 ? color : "#ffffff",
+        s: 2 + Math.random() * 3,
+      });
+    }
+  }
+
+  function loseLife() {
+    lives--;
+    invuln = 1.6;
+    spawnExplosion(player.x + player.w / 2, player.y + player.h / 2, "#ff9a3c");
+    updateHUD();
+    if (lives <= 0) endGame(false);
+  }
+
+  function update(dt) {
+    for (const s of stars) {
+      s.y += s.v * dt;
+      if (s.y > H) { s.y = 0; s.x = Math.random() * W; }
+    }
+    if (gameState !== "playing") return;
+
+    // player
+    let vx = 0;
+    if (keys.left) vx -= 1;
+    if (keys.right) vx += 1;
+    if (vx) player.x += vx * player.speed * dt;
+    if (pointerDown && pointerX != null) {
+      const target = pointerX - player.w / 2;
+      player.x += (target - player.x) * Math.min(1, dt * 14);
+    }
+    player.x = Math.max(8, Math.min(W - player.w - 8, player.x));
+
+    // firing
+    fireCD -= dt;
+    if ((keys.fire || pointerDown) && fireCD <= 0) {
+      bullets.push({ x: player.x + player.w / 2 - 2, y: player.y, w: 4, h: 14, v: 640 });
+      fireCD = 0.26;
+    }
+    for (const b of bullets) b.y -= b.v * dt;
+    bullets = bullets.filter((b) => b.y + b.h > 0 && !b.dead);
+
+    // invader block (chips share one horizontal offset, blockX)
+    let minX = Infinity, maxX = -Infinity, anyAlive = false;
+    for (const inv of invaders) {
+      if (!inv.alive) continue;
+      anyAlive = true;
+      minX = Math.min(minX, inv.baseX + blockX);
+      maxX = Math.max(maxX, inv.baseX + blockX + inv.w);
+    }
+    if (anyAlive) {
+      const speed = 44 + (killed / total) * 120;
+      let stepDown = false;
+      if (invDir > 0 && maxX + speed * dt > W - 8) stepDown = true;
+      if (invDir < 0 && minX - speed * dt < 8) stepDown = true;
+      if (stepDown) {
+        invDir *= -1;
+        for (const inv of invaders) inv.y += invStepDown;
+      } else {
+        blockX += invDir * speed * dt;
+      }
+    }
+
+    // bombs
+    bombCD -= dt;
+    if (bombCD <= 0 && anyAlive) {
+      const alive = invaders.filter((i) => i.alive);
+      const src = alive[Math.floor(Math.random() * alive.length)];
+      bombs.push({ x: src.baseX + blockX + src.w / 2 - 3, y: src.y + src.h, w: 6, h: 14, v: 250 });
+      bombCD = 0.85 + Math.random() * 0.9;
+    }
+    for (const bm of bombs) bm.y += bm.v * dt;
+    bombs = bombs.filter((bm) => bm.y < H && !bm.dead);
+
+    // bullet → invader
+    for (const b of bullets) {
+      for (const inv of invaders) {
+        if (!inv.alive) continue;
+        const ix = inv.baseX + blockX;
+        if (b.x < ix + inv.w && b.x + b.w > ix &&
+            b.y < inv.y + inv.h && b.y + b.h > inv.y) {
+          inv.alive = false;
+          b.dead = true;
+          killed++;
+          score += 100;
+          spawnExplosion(ix + inv.w / 2, inv.y + inv.h / 2, inv.tint);
+          updateHUD();
+          break;
+        }
+      }
+    }
+    bullets = bullets.filter((b) => !b.dead);
+
+    // bomb → player
+    invuln -= dt;
+    if (invuln <= 0) {
+      for (const bm of bombs) {
+        if (bm.x < player.x + player.w && bm.x + bm.w > player.x &&
+            bm.y < player.y + player.h && bm.y + bm.h > player.y) {
+          bm.dead = true;
+          loseLife();
+          break;
+        }
+      }
+      bombs = bombs.filter((bm) => !bm.dead);
+    }
+
+    // particles
+    for (const p of particles) {
+      p.x += p.vx * dt;
+      p.y += p.vy * dt;
+      p.vy += 340 * dt;
+      p.life -= dt;
+    }
+    particles = particles.filter((p) => p.life > 0);
+
+    // win / lose
+    if (killed >= total) { endGame(true); return; }
+    for (const inv of invaders) {
+      if (inv.alive && inv.y + inv.h >= player.y) { endGame(false); return; }
+    }
+  }
+
+  function drawChip(inv) {
+    const x = inv.baseX + blockX;
+    roundRect(ctx, x, inv.y, inv.w, inv.h, 9);
+    ctx.fillStyle = inv.tint;
+    ctx.fill();
+    ctx.lineWidth = 1.5;
+    ctx.strokeStyle = "rgba(20,19,15,0.14)";
+    ctx.stroke();
+    ctx.fillStyle = "#14130f";
+    ctx.font = invFont;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(inv.phrase, x + inv.w / 2, inv.y + inv.h / 2 + 1);
+  }
+
+  function draw() {
+    ctx.fillStyle = "#0b0a09";
+    ctx.fillRect(0, 0, W, H);
+    for (const s of stars) {
+      ctx.fillStyle = "rgba(168,232,107," + (0.2 + s.s / 3) + ")";
+      ctx.fillRect(s.x, s.y, s.s, s.s);
+    }
+    for (const inv of invaders) if (inv.alive) drawChip(inv);
+
+    ctx.fillStyle = "#a8e86b";
+    for (const b of bullets) ctx.fillRect(b.x, b.y, b.w, b.h);
+    ctx.fillStyle = "#ff6b6b";
+    for (const bm of bombs) ctx.fillRect(bm.x, bm.y, bm.w, bm.h);
+
+    // player (blink while briefly invulnerable)
+    if (!(invuln > 0 && Math.floor(invuln * 10) % 2)) {
+      drawShip(ctx, player.x, player.y, player.px);
+    }
+
+    for (const p of particles) {
+      ctx.globalAlpha = Math.max(0, Math.min(1, p.life * 2));
+      ctx.fillStyle = p.color;
+      ctx.fillRect(p.x, p.y, p.s, p.s);
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  function frame(t) {
+    if (!running) return;
+    const dt = Math.min(0.05, (t - lastT) / 1000 || 0);
+    lastT = t;
+    update(dt);
+    draw();
+    raf = requestAnimationFrame(frame);
+  }
+
+  function updateHUD() {
+    if (scoreEl) scoreEl.textContent = "SCORE " + pad(score);
+    if (livesEl) livesEl.textContent = "♥".repeat(Math.max(0, lives));
+  }
+
+  function makeBtn(label, ghost, onClick) {
+    const b = document.createElement("button");
+    b.className = "game-btn" + (ghost ? " ghost" : "");
+    b.type = "button";
+    b.textContent = label;
+    b.addEventListener("click", onClick);
+    return b;
+  }
+
+  function showStart() {
+    msgEl.innerHTML = "";
+    const title = document.createElement("div");
+    title.className = "game-msg-title";
+    title.textContent = "FEEDBACK INVADERS";
+    const hint = document.createElement("div");
+    hint.className = "game-msg-hint";
+    hint.innerHTML =
+      "◀ ▶ or drag to move &nbsp;•&nbsp; SPACE / tap to fire<br>shoot the design notes before they land";
+    const btns = document.createElement("div");
+    btns.className = "game-msg-btns";
+    btns.append(
+      makeBtn("START", false, startPlay),
+      makeBtn("EXIT", true, quit)
+    );
+    msgEl.append(title, hint, btns);
+    msgEl.classList.add("show");
+  }
+
+  function endGame(win) {
+    gameState = win ? "win" : "over";
+    msgEl.innerHTML = "";
+    const title = document.createElement("div");
+    title.className = "game-msg-title";
+    title.textContent = win ? "YOU WIN!" : "GAME OVER";
+    const sc = document.createElement("div");
+    sc.className = "game-msg-score";
+    sc.textContent = "SCORE " + pad(score);
+    const btns = document.createElement("div");
+    btns.className = "game-msg-btns";
+    btns.append(
+      makeBtn("PLAY AGAIN", false, initGame),
+      makeBtn("EXIT", true, quit)
+    );
+    msgEl.append(title, sc, btns);
+    msgEl.classList.add("show");
+  }
+
+  function startPlay() {
+    msgEl.classList.remove("show");
+    msgEl.innerHTML = "";
+    gameState = "playing";
+  }
+
+  function launch() {
+    stage.classList.remove("closing");
+    stage.classList.add("active");
+    stage.setAttribute("aria-hidden", "false");
+    document.body.classList.add("game-playing");
+    initGame();
+    running = true;
+    lastT = performance.now();
+    raf = requestAnimationFrame(frame);
+  }
+
+  function quit() {
+    running = false;
+    cancelAnimationFrame(raf);
+    keys.left = keys.right = keys.fire = false;
+    pointerDown = false;
+    // Play the CRT switch-off, then tear the overlay down.
+    stage.classList.add("closing");
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    window.setTimeout(() => {
+      stage.classList.remove("active", "closing");
+      stage.setAttribute("aria-hidden", "true");
+      document.body.classList.remove("game-playing");
+    }, reduce ? 0 : 380);
+  }
+
+  // ---- input ----
+  launcher.addEventListener("click", launch);
+  if (exitBtn) exitBtn.addEventListener("click", quit);
+
+  window.addEventListener("keydown", (e) => {
+    if (!running) return;
+    if (e.key === "ArrowLeft" || e.key === "a" || e.key === "A") keys.left = true;
+    else if (e.key === "ArrowRight" || e.key === "d" || e.key === "D") keys.right = true;
+    else if (e.key === " " || e.key === "Spacebar") { keys.fire = true; e.preventDefault(); }
+    else if (e.key === "Escape") quit();
+    else if (e.key === "Enter" && gameState !== "playing") startPlay();
+  });
+  window.addEventListener("keyup", (e) => {
+    if (!running) return;
+    if (e.key === "ArrowLeft" || e.key === "a" || e.key === "A") keys.left = false;
+    else if (e.key === "ArrowRight" || e.key === "d" || e.key === "D") keys.right = false;
+    else if (e.key === " " || e.key === "Spacebar") keys.fire = false;
+  });
+
+  function setPointer(e) {
+    const r = canvas.getBoundingClientRect();
+    pointerX = Math.min(r.width, Math.max(0, e.clientX - r.left));
+  }
+  canvas.addEventListener("pointerdown", (e) => {
+    if (gameState === "ready") return;
+    pointerDown = true;
+    setPointer(e);
+  });
+  window.addEventListener("pointermove", (e) => { if (pointerDown) setPointer(e); });
+  window.addEventListener("pointerup", () => { pointerDown = false; });
+
+  window.addEventListener("resize", () => { if (running) resize(); });
+})();

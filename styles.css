@@ -205,6 +205,7 @@ main {
   display: flex;
   flex-direction: column;
   justify-content: center;
+  position: relative; /* anchor for the game launcher on the right */
   /* Extra bottom padding lifts the centered content up ~20px for better
      optical balance (the logo strip below carries visual weight). */
   padding: clamp(40px, 7vw, 72px) 0 calc(clamp(40px, 7vw, 72px) + 40px);
@@ -816,6 +817,311 @@ main {
 
 .site-footer a:hover {
   color: var(--ink);
+}
+
+/* ─────────────  LOGO INVADERS (mini-game)  ───────────── */
+/* Launcher: a little pixel game controller parked in the empty right of the
+   hero. No label — people click it out of curiosity. */
+.game-launcher {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  padding: 20px;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  line-height: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Inner wrapper carries the idle float, so the hover rumble never fights it. */
+.game-launcher-inner {
+  display: inline-block;
+  position: relative;
+  animation: launcher-bob 3s ease-in-out infinite;
+}
+
+/* Flat pixel-art controller (drawn in main.js). */
+.game-launcher-pad {
+  display: block;
+  width: 118px;
+  height: auto;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+/* Hover: the controller rumbles like a real gamepad. */
+.game-launcher:hover .game-launcher-pad,
+.game-launcher:focus-visible .game-launcher-pad {
+  animation: rumble 0.14s linear infinite;
+}
+
+@keyframes rumble {
+  0% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+  20% {
+    transform: translate(-1.6px, 1.1px) rotate(-2deg);
+  }
+  40% {
+    transform: translate(1.6px, -1.1px) rotate(2deg);
+  }
+  60% {
+    transform: translate(-1.2px, -1.4px) rotate(-1.4deg);
+  }
+  80% {
+    transform: translate(1.2px, 1.4px) rotate(1.4deg);
+  }
+  100% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+}
+
+@keyframes launcher-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-9px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .game-launcher-inner,
+  .game-launcher:hover .game-launcher-pad,
+  .game-launcher:focus-visible .game-launcher-pad {
+    animation: none;
+  }
+}
+
+/* Tablet & mobile: the controller leaves its floating slot and sits inline
+   with the hero tags, matched to their height. */
+@media (max-width: 1024px) {
+  .game-launcher {
+    position: static;
+    transform: none;
+    margin: 0;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+  }
+  .game-launcher-inner {
+    display: inline-flex;
+    /* keep the idle float on tablet/mobile too */
+  }
+  .game-launcher-pad {
+    width: auto;
+    height: 33px;
+  }
+}
+
+/* Tablet: the full-size emoji fan sits close to the top of the About band —
+   give it more breathing room above the photo. */
+@media (min-width: 521px) and (max-width: 1024px) {
+  #about.section {
+    padding-top: calc(clamp(64px, 11vw, 128px) + 64px);
+  }
+}
+
+/* Game overlay — fills the screen and turns the page into an arcade. */
+body.game-playing {
+  overflow: hidden;
+}
+
+.game-stage {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  background: #0b0a09;
+  display: none;
+}
+
+/* Switch-on: a bright dot punches out from the centre, stretches into a
+   horizontal line, then unfolds vertically to fill the screen — like an
+   old CRT powering up. Switch-off reverses it. */
+.game-stage.active {
+  display: block;
+  animation: crt-on 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.game-stage.closing {
+  animation: crt-off 0.4s ease-in forwards;
+}
+
+@keyframes crt-on {
+  0% {
+    clip-path: inset(49.6% 49.9% 49.6% 49.9%);
+    filter: brightness(4.5) contrast(1.4);
+  }
+  28% {
+    clip-path: inset(49.6% 0 49.6% 0);
+    filter: brightness(3.2) contrast(1.3);
+  }
+  100% {
+    clip-path: inset(0 0 0 0);
+    filter: brightness(1) contrast(1);
+  }
+}
+
+@keyframes crt-off {
+  0% {
+    clip-path: inset(0 0 0 0);
+    filter: brightness(1);
+  }
+  45% {
+    clip-path: inset(49.6% 0 49.6% 0);
+    filter: brightness(3);
+  }
+  100% {
+    clip-path: inset(49.6% 49.9% 49.6% 49.9%);
+    filter: brightness(7);
+    opacity: 0.5;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .game-stage.active,
+  .game-stage.closing {
+    animation: none;
+  }
+}
+
+#invaders-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+}
+
+.game-hud {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px clamp(16px, 4vw, 44px);
+  font-family: "Press Start 2P", monospace;
+  font-size: clamp(9px, 1.4vw, 12px);
+  letter-spacing: 0.06em;
+  color: #eafbe0;
+  pointer-events: none;
+}
+
+.game-lives {
+  color: #ff6b6b;
+  letter-spacing: 0.12em;
+}
+
+.game-exit {
+  pointer-events: auto;
+  font-family: inherit;
+  font-size: inherit;
+  letter-spacing: inherit;
+  color: #eafbe0;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(234, 251, 224, 0.35);
+  border-radius: 8px;
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.game-exit:hover {
+  background: rgba(255, 107, 107, 0.18);
+  border-color: #ff6b6b;
+}
+
+.game-msg {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 22px;
+  text-align: center;
+  padding: 24px;
+  font-family: "Press Start 2P", monospace;
+  color: #eafbe0;
+  background: radial-gradient(
+    circle at center,
+    rgba(11, 10, 9, 0.72),
+    rgba(11, 10, 9, 0.94)
+  );
+}
+
+.game-msg.show {
+  display: flex;
+}
+
+.game-msg-title {
+  font-size: clamp(22px, 5vw, 40px);
+  color: #a8e86b;
+  text-shadow: 0 0 18px rgba(168, 232, 107, 0.45);
+  line-height: 1.4;
+}
+
+.game-msg-score {
+  font-size: clamp(11px, 2vw, 16px);
+  letter-spacing: 0.1em;
+}
+
+.game-msg-hint {
+  font-size: clamp(8px, 1.4vw, 11px);
+  line-height: 2;
+  color: #b9c2b0;
+}
+
+.game-msg-btns {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 6px;
+}
+
+.game-btn {
+  font-family: "Press Start 2P", monospace;
+  font-size: clamp(9px, 1.4vw, 12px);
+  letter-spacing: 0.06em;
+  color: #0b0a09;
+  background: #a8e86b;
+  border: 0;
+  border-radius: 10px;
+  padding: 14px 18px;
+  cursor: pointer;
+  transition: transform 0.12s ease, box-shadow 0.15s ease;
+  box-shadow: 0 0 0 rgba(168, 232, 107, 0);
+}
+
+.game-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 22px rgba(168, 232, 107, 0.4);
+}
+
+.game-btn.ghost {
+  color: #eafbe0;
+  background: transparent;
+  border: 1px solid rgba(234, 251, 224, 0.4);
+}
+
+.game-btn.ghost:hover {
+  box-shadow: none;
+  border-color: #eafbe0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .game-launcher-ship,
+  .game-launcher:hover .game-launcher-hint {
+    animation: none;
+  }
 }
 
 /* ─────────────  RESPONSIVE  ───────────── */
