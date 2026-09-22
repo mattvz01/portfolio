@@ -1,28 +1,53 @@
 // Auto-update the footer year so it never goes stale.
 document.getElementById("year").textContent = new Date().getFullYear();
 
-// Keep --header-h / --logos-h in sync with the real header and logo-strip
-// heights so the hero sizes itself to leave the logo strip flush at the bottom
-// of the first screen (at every viewport width).
+// Keep --header-h / --logos-h / --vph in sync with the real header, logo-strip
+// and viewport so the hero sizes itself to leave the logo strip flush at the
+// bottom of the first screen — on real devices too (iOS home indicator, the
+// bottom Safari bar, etc.), which CSS vh/svh don't always get right.
 const headerEl = document.querySelector(".site-header");
 const logosEl = document.querySelector(".logos");
 if (headerEl) {
+  const root = document.documentElement.style;
+  let lastW = window.innerWidth;
   const setFrameVars = () => {
-    const root = document.documentElement.style;
     root.setProperty("--header-h", headerEl.offsetHeight + "px");
     if (logosEl) root.setProperty("--logos-h", logosEl.offsetHeight + "px");
   };
+  // Lock the viewport height from the actual innerHeight. Re-lock only on true
+  // width changes (rotation) — NOT on height-only resizes, which on mobile are
+  // just the toolbar showing/hiding during scroll and would jump the layout.
+  const setViewport = () => root.setProperty("--vph", window.innerHeight + "px");
   setFrameVars();
-  window.addEventListener("load", setFrameVars);
-  window.addEventListener("resize", setFrameVars);
+  setViewport();
+  window.addEventListener("load", () => {
+    setFrameVars();
+    setViewport();
+  });
+  window.addEventListener("orientationchange", () => {
+    setFrameVars();
+    setViewport();
+  });
+  window.addEventListener("resize", () => {
+    setFrameVars();
+    if (window.innerWidth !== lastW) {
+      lastW = window.innerWidth;
+      setViewport();
+    }
+  });
 }
 
 // "Back to top" links (footer + wordmark) always return to the true top so the
-// header resets to its default, expanded state.
+// header resets to its default, expanded state. Feature-detect smooth scroll —
+// older mobile Safari ignores the options form, so fall back to a plain jump.
 document.querySelectorAll('a[href="#top"]').forEach((link) => {
   link.addEventListener("click", (e) => {
     e.preventDefault();
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    if ("scrollBehavior" in document.documentElement.style) {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } else {
+      window.scrollTo(0, 0);
+    }
   });
 });
 

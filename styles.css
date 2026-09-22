@@ -220,7 +220,13 @@ main {
   /* Opening frame fills the viewport: header (--header-h) + hero + logo strip
      (96px) together = 100svh, so the logo strip sits flush at the bottom of
      the first screen. Hero content is centered in its remaining space. */
+  /* Fill the first screen so the logo strip lands flush at the fold.
+     Layered fallbacks: plain `vh` (oldest), then `svh` where supported, then
+     `--vph` — the real measured viewport height set by main.js, which respects
+     whatever a device reserves (iOS home indicator, bottom Safari bar, etc.). */
+  min-height: calc(100vh - var(--header-h) - var(--logos-h));
   min-height: calc(100svh - var(--header-h) - var(--logos-h));
+  min-height: calc(var(--vph, 100svh) - var(--header-h) - var(--logos-h));
   display: flex;
   flex-direction: column;
   justify-content: center;
