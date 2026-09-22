@@ -18,7 +18,7 @@
 
   --font: "Open Runde", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
 
-  --maxw: 1680px;
+  --maxw: 1536px;
   --gutter: clamp(20px, 5vw, 56px);
   --radius: 16px;
   --header-h: 64px; /* live header height; kept in sync by main.js */
