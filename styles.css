@@ -861,31 +861,72 @@ main {
   color: var(--ink);
 }
 
-/* ─────────────  FOOTER  ───────────── */
-.site-footer {
-  max-width: var(--maxw);
-  margin: 0 auto;
-  padding: 32px var(--gutter) 56px;
-  display: flex;
-  justify-content: space-between;
-  font-size: 14px;
-  color: var(--ink-faint);
+/* ─────────────  FOOTER (drawer reveal)  ─────────────
+   The footer is fixed one viewport tall behind the page. The page has an opaque
+   background and a viewport of bottom margin, so scrolling to the very end lifts
+   the page away and reveals the footer beneath — like opening a drawer. */
+.page {
   position: relative;
+  z-index: 1;
+  background: var(--paper);
+  will-change: transform;
 }
 
-/* Full-bleed divider above the footer. */
-.site-footer::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: calc(50% - 50vw);
-  width: 100vw;
-  height: 1px;
-  background: var(--line);
+/* The footer drawer is fixed behind the page. The page ends at the experience
+   section and covers it; on a deliberate overscroll past the end, main.js lifts
+   the PAGE up (never covering the content) to reveal the drawer beneath — the
+   text stays pinned to the bottom like the drawer's front panel. */
+.site-footer {
+  position: fixed;
+  left: 0;
+  bottom: 0;
+  z-index: 0;
+  width: 100%;
+  height: 50svh;
+  overflow: hidden;
+  background: #0c0c0e;
+  color: #ecebe4;
+  border-top: 1px solid rgba(236, 235, 228, 0.16); /* full-width divider */
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: clamp(28px, 4vw, 56px) var(--gutter) 0;
 }
 
-.site-footer a:hover {
-  color: var(--ink);
+.footer-inner {
+  max-width: var(--maxw);
+  width: 100%;
+  margin: 0 auto;
+}
+
+/* Giant statement line — single font (Hind SemiBold), fills the content width
+   (JS sizes it), sits flush against the bottom edge. */
+.footer-big {
+  font-family: "Hind", var(--font);
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+  color: #f4f1ea;
+  font-size: 120px; /* placeholder; main.js scales this to fill the width */
+  margin-bottom: -0.22em; /* pull the baseline flush to the bottom edge */
+}
+
+.footer-dot {
+  color: #a8e86b; /* lime full stop */
+}
+
+/* Tablet & mobile: skip the drawer reveal — render a normal static black footer
+   at the end of the page instead. */
+@media (prefers-reduced-motion: reduce) {
+  .page {
+    transform: none;
+  }
+  .site-footer {
+    position: static;
+    height: auto;
+    z-index: auto;
+    padding-bottom: 0;
+  }
 }
 
 /* ─────────────  LOGO INVADERS (mini-game)  ───────────── */

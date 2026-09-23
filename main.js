@@ -1,5 +1,6 @@
-// Auto-update the footer year so it never goes stale.
-document.getElementById("year").textContent = new Date().getFullYear();
+// Auto-update the footer year so it never goes stale (if present).
+const yearEl = document.getElementById("year");
+if (yearEl) yearEl.textContent = new Date().getFullYear();
 
 // Keep --header-h / --logos-h / --vph in sync with the real header, logo-strip
 // and viewport so the hero sizes itself to leave the logo strip flush at the
@@ -70,6 +71,160 @@ if (launcherAlignEl && heroAlignEl && heroTitleAlignEl) {
   alignLauncher();
   window.addEventListener("load", alignLauncher);
   window.addEventListener("resize", alignLauncher);
+}
+
+// Footer drawer reveal (desktop): the page ENDS at the experience section. Only
+// a deliberate second gesture — trying to scroll PAST the end — opens the
+// drawer. It reveals from the bottom up (clip), so the text stays pinned to the
+// bottom like the front panel of a drawer being pulled open. Scrolling back up
+// closes it before the page scrolls again.
+(function () {
+  const footer = document.querySelector(".site-footer");
+  const page = document.querySelector(".page");
+  if (!footer || !page) return;
+  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const active = () => !reduce; // desktop (wheel) + touch; static on reduced-motion
+
+  const FULL = 460; // wheel px for a full open
+  const TOUCH_FULL = 260; // touch-drag px for a full open
+  const SNAP = 0.3; // release past this → latch open, else close
+  let amt = 0; // live open amount (0..1), driven by the pull
+  let shown = 0; // eased display value
+  let raf = null;
+  let endTimer = null;
+
+  const atBottom = () =>
+    window.innerHeight + window.scrollY >=
+    document.documentElement.scrollHeight - 2;
+  const ease = (t) => t * t * (3 - 2 * t);
+
+  const render = () => {
+    shown += (amt - shown) * 0.16;
+    if (Math.abs(amt - shown) < 0.0006) shown = amt;
+    const h = footer.offsetHeight || 1;
+    // Lift the PAGE up to uncover the drawer beneath — content is pushed up, not
+    // covered. The drawer/text stay pinned at the bottom.
+    page.style.transform = "translateY(" + (-ease(shown) * h).toFixed(1) + "px)";
+    raf = shown !== amt ? requestAnimationFrame(render) : null;
+  };
+  const kick = () => { if (raf == null) raf = requestAnimationFrame(render); };
+  const setAmt = (v) => { amt = v < 0 ? 0 : v > 1 ? 1 : v; kick(); };
+
+  const scheduleRelease = () => {
+    clearTimeout(endTimer);
+    endTimer = setTimeout(() => setAmt(amt > SNAP ? 1 : 0), 140);
+  };
+
+  window.addEventListener(
+    "wheel",
+    (e) => {
+      if (!active()) return;
+      const isOpen = amt > 0.001;
+      if (e.deltaY > 0 && (atBottom() || isOpen)) {
+        // deliberate pull past the end → open
+        e.preventDefault();
+        setAmt(amt + e.deltaY / FULL);
+        scheduleRelease();
+      } else if (e.deltaY < 0 && isOpen) {
+        // pull back up → close (consumed until fully closed)
+        e.preventDefault();
+        setAmt(amt + e.deltaY / FULL);
+        scheduleRelease();
+      }
+    },
+    { passive: false }
+  );
+
+  // Touch equivalent for mobile/tablet: a deliberate drag up at the very end
+  // opens the drawer; drag back down closes it.
+  let touchLastY = null;
+  let touchEngaged = false;
+  window.addEventListener(
+    "touchstart",
+    (e) => {
+      if (!active()) return;
+      touchLastY = e.touches[0].clientY;
+      touchEngaged = atBottom() || amt > 0.001;
+    },
+    { passive: true }
+  );
+  window.addEventListener(
+    "touchmove",
+    (e) => {
+      if (!active() || touchLastY == null) return;
+      const y = e.touches[0].clientY;
+      const dy = touchLastY - y; // > 0 = finger moving up = revealing
+      touchLastY = y;
+      const isOpen = amt > 0.001;
+      if (touchEngaged && (atBottom() || isOpen) && (dy > 0 || isOpen)) {
+        setAmt(amt + dy / TOUCH_FULL);
+        if (e.cancelable) e.preventDefault();
+      }
+    },
+    { passive: false }
+  );
+  window.addEventListener(
+    "touchend",
+    () => {
+      if (touchLastY == null) return;
+      touchLastY = null;
+      if (active() && (amt > 0.001 || touchEngaged)) setAmt(amt > SNAP ? 1 : 0);
+    },
+    { passive: true }
+  );
+
+  window.addEventListener("resize", () => {
+    if (!active()) {
+      amt = shown = 0;
+      page.style.transform = "";
+      if (raf) { cancelAnimationFrame(raf); raf = null; }
+    }
+  });
+})();
+
+// Footer statement line: scale the font so "Stop scrolling." fills the content
+// width (up to the max-width) and responds to the viewport. Two passes settle
+// the two-font line; re-run once webfonts load and on resize.
+const footerBigEl = document.getElementById("footer-big");
+if (footerBigEl) {
+  const measureTextWidth = () => {
+    // Range width = the real text bounds (block scrollWidth clamps to the
+    // container when the text is narrower, which breaks the fit).
+    const range = document.createRange();
+    range.selectNodeContents(footerBigEl);
+    return range.getBoundingClientRect().width;
+  };
+  const footerEl = document.querySelector(".site-footer");
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const fitFooterBig = () => {
+    const parent = footerBigEl.parentElement;
+    if (!parent || !parent.clientWidth) return;
+    const target = parent.clientWidth;
+    let size = 120;
+    footerBigEl.style.fontSize = size + "px";
+    for (let i = 0; i < 3; i++) {
+      const w = measureTextWidth();
+      if (!w) break;
+      size = size * (target / w);
+      footerBigEl.style.fontSize = size + "px";
+    }
+    // Footer drawer height relative to the text: shorter on desktop, taller on
+    // mobile. (Reduced-motion uses the static footer, no fixed height.)
+    if (footerEl) {
+      if (reduceMotion) {
+        footerEl.style.height = "";
+      } else {
+        const mult = window.innerWidth > 1024 ? 1.34 : 2;
+        footerEl.style.height = Math.round(size * mult) + "px";
+      }
+    }
+  };
+  fitFooterBig();
+  window.addEventListener("load", fitFooterBig);
+  window.addEventListener("resize", fitFooterBig);
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(fitFooterBig);
+  }
 }
 
 // About photo: fan the emojis out from behind the portrait when the stage

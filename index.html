@@ -34,18 +34,20 @@
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/@fontsource/open-runde@latest/700.css"
     />
-    <!-- Yellowtail: handwritten wordmark. Press Start 2P: the mini-game. -->
+    <!-- Yellowtail: wordmark. Hind: footer statement. Press Start 2P: game. -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Yellowtail&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Hind:wght@600&family=Press+Start+2P&family=Yellowtail&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="styles.css?v=115" />
+    <link rel="stylesheet" href="styles.css?v=127" />
   </head>
   <body>
-    <!-- ─────────────  HEADER / NAV  ───────────── -->
-    <header class="site-header">
+    <!-- Everything above the footer lifts away to reveal the footer drawer. -->
+    <div class="page">
+      <!-- ─────────────  HEADER / NAV  ───────────── -->
+      <header class="site-header">
       <div class="nav-pill">
         <a href="#top" class="wordmark">Matt.vZ</a>
         <nav class="nav">
@@ -281,6 +283,8 @@
       </section>
 
     </main>
+    </div>
+    <!-- /.page -->
 
     <!-- ─────────────  LOGO INVADERS (mini-game overlay)  ───────────── -->
     <div id="game-stage" class="game-stage" aria-hidden="true">
@@ -293,11 +297,13 @@
       <div class="game-msg" id="game-msg" aria-live="polite"></div>
     </div>
 
-    <footer class="site-footer">
-      <span>© <span id="year"></span> Matt van Zyl</span>
-      <a href="#top">Back to top ↑</a>
+    <!-- ─────────────  FOOTER (drawer reveal)  ───────────── -->
+    <footer class="site-footer" aria-label="Site footer">
+      <div class="footer-inner">
+        <div class="footer-big" id="footer-big" aria-hidden="true">no more scroll<span class="footer-dot">.</span></div>
+      </div>
     </footer>
 
-    <script src="main.js?v=115"></script>
+    <script src="main.js?v=127"></script>
   </body>
 </html>
