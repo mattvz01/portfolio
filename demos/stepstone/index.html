@@ -12,7 +12,7 @@
       href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;700&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="demo.css?v=3" />
+    <link rel="stylesheet" href="demo.css?v=4" />
   </head>
   <body>
     <main class="viewer">
@@ -89,7 +89,6 @@
                       <div class="chips">
                         <span class="chip" id="chipJob"><span id="chipJobLabel">Product Manager</span></span>
                         <span class="chip" id="chipLoc"><span id="chipLocLabel">London</span><b class="mi" id="chipLocMi">+10mi</b></span>
-                        <span class="chip" id="chipMan"><span>Manchester</span><b class="mi">+10mi</b></span>
                       </div>
                       <span class="pencil" id="pencil"><img src="assets/icon-pencil.svg" alt="" /></span>
                     </div>
@@ -149,7 +148,7 @@
                     </div>
                     <div class="job-body">
                       <div class="job-meta">
-                        <span><img src="assets/icon-map-marker.svg" alt="" class="i-marker" />Koblenz, Berlin, Hamburg, Martinsried</span>
+                        <span><img src="assets/icon-map-marker.svg" alt="" class="i-marker" />London</span>
                         <span><img src="assets/icon-clock.svg" alt="" />Full time</span>
                         <span><img src="assets/icon-salary.svg" alt="" />69,000 - 91,000 €/year*</span>
                       </div>
@@ -321,7 +320,9 @@
               <option value="soft">Soft</option>
             </select></label>
           <label class="check"><input type="checkbox" name="touch" checked /> Touch indicator</label>
-          <label class="check"><input type="checkbox" name="camera" checked /> Camera drift</label>
+          <label>Camera zoom <output data-for="zoom"></output>
+            <input type="range" name="zoom" min="0" max="1.5" step="0.05" value="1" /></label>
+          <label class="check"><input type="checkbox" name="camera" checked /> Camera follows focus</label>
           <label class="check"><input type="checkbox" name="loop" checked /> Loop</label>
           <label class="check"><input type="checkbox" name="reduced" /> Reduced-motion version</label>
           <button type="reset" class="ctl ctl-text">Reset</button>
@@ -329,6 +330,6 @@
       </div>
     </main>
 
-    <script src="demo.js?v=2"></script>
+    <script src="demo.js?v=5"></script>
   </body>
 </html>

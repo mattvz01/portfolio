@@ -34,6 +34,7 @@
     easing: "calm",
     touch: true,
     camera: true,
+    zoom: 1, // camera focus intensity
     loop: true,
     reduced: prefersReduced.matches,
   };
@@ -236,7 +237,7 @@
   const E = {}; // element refs
   ["curtain", "hdrSpin", "heroBg", "heroGrad", "headline", "seg", "fields", "inJob", "inLoc",
     "valJob", "valLoc", "caretJob", "caretLoc", "findBtn", "morphFields", "trackPlus", "trackTab",
-    "tabLabel", "contentArea", "chipJob", "chipLoc", "chipLocLabel", "chipLocMi", "chipMan",
+    "tabLabel", "contentArea", "chipJob", "chipLoc", "chipLocLabel", "chipLocMi",
     "pencil", "impact", "toolbar", "job1", "job2", "fitJob1", "overlay", "sheet", "modal", "mTag",
     "mTitle", "mBody", "mFoot", "tryBtn", "laterBtn", "morphBubble", "companion", "back", "intro",
     "introDesc", "suggHead", "prompt1", "prompt2", "prompt3", "p1Icon", "p1Label", "p1Arrow",
@@ -270,6 +271,8 @@
       modal: rel(E.modal), tryBtn: rel(E.tryBtn),
       card: rel(E.prompt1), bubble: rel(E.bubble),
       reactions: rel(E.reactions), chat: rel(E.chat),
+      job1: rel(E.job1), intro: rel(E.intro), sugg: rel($("suggestions")),
+      answer: rel(E.answer), matches: rel(E.matches),
     };
 
     const S = P.speed;
@@ -342,7 +345,8 @@
     set(E.inLoc, { "--f": [0, 0] }, 0);
     set(E.findBtn, { "--h": [0, 0], scale: [1, 1] }, 0);
 
-    t = h(1.1);
+    t = h(1.5);
+    const tJob = t;
     const pJob = center(M.job, 0.6);
     touch.show(t - m(0.35), pJob);
     touch.press(t);
@@ -423,7 +427,6 @@
     anim(E.chipJob, { opacity: [0, 1] }, land, m(0.25), "out");
     anim(E.chipLoc, { opacity: [0, 1] }, land + G * 0.5, m(0.25), "out");
     anim(E.chipLocMi, { opacity: [0, 1] }, land + m(0.15), m(0.25), "out");
-    anim(E.chipMan, { opacity: [0, 1], x: [-4, 0] }, land + G * 1.5, m(0.3), "out");
     anim(E.pencil, { opacity: [0, 1] }, land + G * 2, m(0.3), "out");
     anim(E.impact, { opacity: [0, 1], y: [4, 0] }, land + G * 2.5, m(0.35), "out");
 
@@ -450,6 +453,7 @@
     SCENES.push({ name: "What’s new", t: tm });
 
     t = modalAt + m(0.5) + h(3.4);
+    const tTry = t;
     const pTry = center(M.tryBtn, 0.5, 0.6);
     touch.show(t - m(0.3), { x: pTry.x + 18, y: pTry.y + 26 });
     touch.move(t, pTry, m(0.45));
@@ -501,6 +505,7 @@
     SCENES.push({ name: "Companion", t: tc });
 
     t = suggAt + m(0.6) + h(3.4);
+    const tCard = t;
     const pCard = center(M.card, 0.55, 0.58);
     touch.show(t - m(0.3), { x: pCard.x + 24, y: pCard.y + 40 });
     touch.move(t, pCard, m(0.45));
@@ -570,24 +575,48 @@
     D = END + m(0.9);
     anim(E.curtain, { opacity: [0, 1] }, END, m(0.9), "inOut");
 
-    /* ── Camera: a slow, barely-there push that resets between scenes ── */
-    if (P.camera && !R) {
-      const c = E.cam;
-      const k = [
-        [0, 1, 0], [tx, 1.014, 0],
-        [land + m(0.2), 1.004, 0], [tm, 1.012, 0],
-        [modalAt + m(0.8), 1.022, 10], [tc, 1.026, 10],
-        [ci + m(0.4), 1.006, 0], [tq, 1.016, 0],
-        [think + m(0.6), 1.008, 0], [END, 1.022, -6],
-      ];
-      set(c, { scale: [1, 1], y: [0, 0] }, 0);
-      for (let i = 1; i < k.length; i++) {
-        const [a, s0, y0] = k[i - 1];
-        const [b, s1, y1] = k[i];
-        anim(c, { scale: [s0, s1], y: [y0, y1] }, a, b - a, "inOut");
-      }
-    } else {
-      set(E.cam, { scale: [1, 1], y: [0, 0] }, 0);
+    /* ── Camera: follows the focus — pushes in on what's being touched or
+       appearing, pulls back out for each transition. Shots never pan past the
+       phone's edges, so the frame is always filled (cropping is fine). ── */
+    const cam = E.cam;
+    set(cam, { x: [0, 0], y: [0, 0], scale: [1, 1] }, 0);
+    if (P.camera && !R && P.zoom > 0) {
+      const C = { x: 187.5, y: 406 };
+      const clamp = (v, lim) => Math.max(-lim, Math.min(lim, v));
+      const pose = (rect, zoom, fx = 0.5, fy = 0.5) => {
+        const z = 1 + (zoom - 1) * P.zoom;
+        if (!rect) return { x: 0, y: 0, z };
+        const f = center(rect, fx, fy);
+        return {
+          x: clamp(-z * (f.x - C.x), (z - 1) * C.x),
+          y: clamp(-z * (f.y - C.y), (z - 1) * C.y),
+          z,
+        };
+      };
+      let cur = { x: 0, y: 0, z: 1 };
+      let free = 0; // a shot never starts before the previous one lands
+      const shot = (at, dur, rect, zoom, fx, fy) => {
+        const to = pose(rect, zoom, fx, fy);
+        const a = Math.max(at, free);
+        anim(cam, { x: [cur.x, to.x], y: [cur.y, to.y], scale: [cur.z, to.z] }, a, dur, "inOut");
+        cur = to;
+        free = a + dur;
+      };
+      const scrolled = (r) => ({ ...r, y: r.y - overflow });
+
+      // Four focus moments, each one push in and one pull back out.
+      // 1 · Search: in on the fields while they're filled, out for the hand-off.
+      shot(tJob - m(0.35), m(1.25), M.fields, 1.45, 0.5, 0.55);
+      shot(tx - 0.05, m(1.0), null, 1);
+      // 2 · What's new: in on the modal (title and CTA both in frame), out as it opens up.
+      shot(modalAt + m(0.15), m(1.2), M.modal, 1.4, 0.58, 0.62);
+      shot(tc + 0.04, m(1.0), null, 1);
+      // 3 · Suggestions: in on the card before it's tapped, out as it becomes the request.
+      shot(tCard - m(0.6), m(1.1), M.card, 1.4, 0.5, 0.5);
+      shot(tq + 0.02, bubbleDur + 0.2, null, 1);
+      // 4 · Matches: a gentle push on the results, then back to the whole screen.
+      shot(cardsAt - 0.1, m(1.4), scrolled(M.matches), 1.18, 0.5, 0.45);
+      shot(r2 + h(2.2), m(1.6), null, 1);
     }
 
     SCENES = SCENES.filter((s, i, a) => a.findIndex((x) => x.name === s.name) === i);
@@ -701,6 +730,7 @@
     P.easing = fd.get("easing");
     P.touch = fd.has("touch");
     P.camera = fd.has("camera");
+    P.zoom = +fd.get("zoom");
     P.loop = fd.has("loop");
     P.reduced = fd.has("reduced");
     $$("output", form).forEach((o) => {
@@ -711,7 +741,7 @@
     });
   }
   function writeParams() {
-    for (const k of ["speed", "hold", "stagger", "modalScale", "cardDist", "easing"]) form.elements[k].value = P[k];
+    for (const k of ["speed", "hold", "stagger", "modalScale", "cardDist", "easing", "zoom"]) form.elements[k].value = P[k];
     for (const k of ["touch", "camera", "loop", "reduced"]) form.elements[k].checked = P[k];
   }
 

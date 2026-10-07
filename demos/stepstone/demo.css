@@ -69,7 +69,8 @@ body {
   transform: scale(var(--fit, 1));
   transform-origin: 50% 50%;
 }
-.cam { position: relative; width: 100%; height: 100%; transform-origin: 50% 40%; will-change: transform; }
+/* No will-change: the browser must re-raster while zoomed so text stays crisp. */
+.cam { position: relative; width: 100%; height: 100%; transform-origin: 50% 50%; }
 
 /* Soft colour behind the glass so the frost has something to diffuse. */
 .orb {
@@ -192,12 +193,13 @@ b { font-weight: 700; }
 }
 .headline .hired { color: var(--deep-teal); }
 .search-options { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 24px; }
-.seg { display: flex; background: var(--bg-2); border-radius: 10px; }
+.seg { display: flex; padding: 2px; background: var(--bg-2); border-radius: 10px; }
 .seg-item {
-  padding: 3px 12px; border-radius: 10px; border: 1px solid transparent;
+  padding: 4px 12px; border-radius: 10px;
   font-size: 14px; line-height: 24px; font-weight: 500; white-space: nowrap;
+  color: var(--text-2);
 }
-.seg-item.is-on { background: #fff; border-color: var(--text); filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.08)); }
+.seg-item.is-on { background: #fff; color: var(--text); filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.08)); }
 
 .fields {
   width: 100%;
