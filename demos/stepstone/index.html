@@ -1,0 +1,334 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Stepstone — AI job search, product demo</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!-- Relative Pro (Genesis) is proprietary: use it if installed locally,
+         otherwise Figtree is the closest open match in rhythm and shapes. -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="demo.css?v=3" />
+  </head>
+  <body>
+    <main class="viewer">
+      <div class="stage" id="stage">
+        <div class="fitbox" id="fitbox">
+          <span class="orb orb--teal" aria-hidden="true"></span>
+          <span class="orb orb--lilac" aria-hidden="true"></span>
+          <span class="orb orb--peach" aria-hidden="true"></span>
+          <div class="cam" id="cam">
+            <div class="glass" aria-hidden="true"></div>
+            <div class="phone" id="phone" aria-label="Animated product demo" role="img">
+
+              <!-- ═════════ BASE: header shared by Home + Results ═════════ -->
+              <header class="hdr" id="hdr">
+                <div class="brand" id="brand">
+                  <span class="brand-icon">
+                    <img class="brand-bg" src="assets/logo-bg.svg" alt="" />
+                    <img class="brand-stones" src="assets/logo-stones.svg" alt="" />
+                  </span>
+                  <img class="brand-word" src="assets/wordmark.svg" alt="stepstone" />
+                </div>
+                <div class="menu" id="menu">
+                  <span class="avatar"><span><i>KM</i></span></span>
+                  <img class="spin24" id="hdrSpin" src="assets/ai-spinner.svg" alt="" />
+                </div>
+              </header>
+
+              <!-- ═════════ STATE 1: Home / Search ═════════ -->
+              <section class="home" id="home">
+                <div class="hero-bg" id="heroBg">
+                  <img class="hero-grad" id="heroGrad" src="assets/home-gradient.png" alt="" />
+                </div>
+                <div class="hero-content">
+                  <h1 class="headline" id="headline">
+                    <span>Search smarter.</span>
+                    <span>Apply faster.</span>
+                    <span class="hired">Get hired.</span>
+                  </h1>
+                  <div class="search-options">
+                    <div class="seg" id="seg">
+                      <span class="seg-item is-on">Classic search</span>
+                      <span class="seg-item">Search in your words</span>
+                    </div>
+                    <div class="fields" id="fields">
+                      <div class="field" id="inJob">
+                        <img src="assets/icon-jobs.svg" alt="" />
+                        <span class="field-val"><span id="valJob" data-text="Product Manager"></span><i class="caret" id="caretJob"></i></span>
+                      </div>
+                      <div class="field" id="inLoc">
+                        <img src="assets/icon-location.svg" alt="" />
+                        <span class="field-val"><span id="valLoc" data-text="London"></span><i class="caret" id="caretLoc"></i></span>
+                      </div>
+                      <div class="btn btn-primary btn-block" id="findBtn">Find jobs</div>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              <!-- Shared surface: search fields → compact criteria header -->
+              <div class="morph" id="morphFields"></div>
+
+              <!-- ═════════ STATE 2: Search results ═════════ -->
+              <section class="results" id="results">
+                <div class="search-track">
+                  <div class="track-tabs">
+                    <span class="track-plus" id="trackPlus"><img src="assets/icon-plus.svg" alt="" /></span>
+                    <span class="track-tab" id="trackTab">
+                      <span class="track-tab-label" id="tabLabel">Product Manager</span>
+                      <img src="assets/icon-remove.svg" alt="" />
+                    </span>
+                  </div>
+                  <div class="content-area" id="contentArea">
+                    <div class="search-content">
+                      <div class="chips">
+                        <span class="chip" id="chipJob"><span id="chipJobLabel">Product Manager</span></span>
+                        <span class="chip" id="chipLoc"><span id="chipLocLabel">London</span><b class="mi" id="chipLocMi">+10mi</b></span>
+                        <span class="chip" id="chipMan"><span>Manchester</span><b class="mi">+10mi</b></span>
+                      </div>
+                      <span class="pencil" id="pencil"><img src="assets/icon-pencil.svg" alt="" /></span>
+                    </div>
+                    <div class="impact" id="impact">
+                      <span class="jobs-count"><img src="assets/icon-jobs16.svg" alt="" />453 Jobs</span>
+                      <span class="fit fit--plain"><i class="bar"><b></b><b></b><b></b></i>Strong search</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="list" id="list">
+                  <div class="toolbar" id="toolbar">
+                    <span class="tool"><img src="assets/icon-filter.svg" alt="" />Filters<b class="count">2</b></span>
+                    <span class="tool">Best match<img src="assets/icon-sort.svg" alt="" class="sort" /></span>
+                  </div>
+
+                  <article class="job" id="job1">
+                    <div class="job-top">
+                      <span class="co-logo"><img src="assets/logo-wise.png" alt="" /></span>
+                      <span class="job-feedback">
+                        <img src="assets/icon-not-for-me.svg" alt="" />
+                        <img src="assets/icon-heart.svg" alt="" />
+                      </span>
+                    </div>
+                    <div class="job-role">
+                      <span class="job-co">Wise</span>
+                      <span class="job-title">Senior Product manager</span>
+                    </div>
+                    <div class="job-body">
+                      <div class="job-meta">
+                        <span><img src="assets/icon-map-marker.svg" alt="" class="i-marker" />London</span>
+                        <span><img src="assets/icon-clock.svg" alt="" />Full time</span>
+                        <span><img src="assets/icon-salary.svg" alt="" />69,000 - 91,000 £/year*</span>
+                      </div>
+                      <div class="ai-summary">
+                        <span class="ai-summary-text">In this role you’ll help teams in a live environment. A CSCS card, own tools and previous experience fitting kitchens in live environments is required.</span>
+                        <span class="ai-summary-btn"><img src="assets/icon-chevron-down.svg" alt="" /></span>
+                      </div>
+                      <div class="job-foot">
+                        <span class="fit" id="fitJob1"><i class="bar"><b></b><b></b><b></b></i>High interview chance!</span>
+                        <span class="posted">1 day ago</span>
+                      </div>
+                    </div>
+                  </article>
+
+                  <article class="job" id="job2">
+                    <div class="job-top">
+                      <span class="co-logo"><img src="assets/logo-gitlab.svg" alt="" /></span>
+                      <span class="job-feedback">
+                        <img src="assets/icon-not-for-me.svg" alt="" />
+                        <img src="assets/icon-heart.svg" alt="" />
+                      </span>
+                    </div>
+                    <div class="job-role">
+                      <span class="job-co">Gitlab</span>
+                      <span class="job-title">Senior Product manager</span>
+                    </div>
+                    <div class="job-body">
+                      <div class="job-meta">
+                        <span><img src="assets/icon-map-marker.svg" alt="" class="i-marker" />Koblenz, Berlin, Hamburg, Martinsried</span>
+                        <span><img src="assets/icon-clock.svg" alt="" />Full time</span>
+                        <span><img src="assets/icon-salary.svg" alt="" />69,000 - 91,000 €/year*</span>
+                      </div>
+                      <div class="ai-summary">
+                        <span class="ai-summary-text">In this role you’ll install display kitchens in a live showroom environment. A CSCS card, own tools and previous experience fitting kitchens in live environments is required.</span>
+                        <span class="ai-summary-btn"><img src="assets/icon-chevron-down.svg" alt="" /></span>
+                      </div>
+                      <div class="job-foot">
+                        <span class="fit"><i class="bar"><b></b><b></b><b></b></i>Strong fit!</span>
+                        <span class="posted">1 day ago</span>
+                      </div>
+                    </div>
+                  </article>
+                </div>
+              </section>
+
+              <!-- ═════════ STATE 3: What's new ═════════ -->
+              <div class="overlay" id="overlay"></div>
+              <!-- Shared surface: modal card → Companion page -->
+              <div class="sheet" id="sheet"></div>
+              <div class="modal" id="modal">
+                <div class="modal-head">
+                  <div class="modal-tagrow" id="mTag">
+                    <span class="tag-new">What’s new</span>
+                    <img src="assets/icon-close.svg" alt="" class="modal-close" />
+                  </div>
+                  <h2 class="modal-title" id="mTitle">Your personal AI job agent</h2>
+                </div>
+                <p class="modal-body" id="mBody">Compare jobs side by side, check salaries, refine your search by asking, and see which jobs fit you best and why.</p>
+                <div class="modal-foot" id="mFoot">
+                  <span class="btn btn-link" id="laterBtn">Try it later</span>
+                  <span class="btn btn-primary" id="tryBtn">Try it now</span>
+                </div>
+              </div>
+
+              <!-- Shared surface: suggestion card → user request bubble -->
+              <div class="morph" id="morphBubble"></div>
+
+              <!-- ═════════ STATE 4: Companion intro ═════════ -->
+              <section class="companion" id="companion">
+                <img class="back" id="back" src="assets/icon-back.svg" alt="" />
+                <div class="comp-content">
+                  <div class="welcome">
+                    <p class="intro" id="intro">Hi, I’m <span class="lisa">Lisa</span>, the Stepstone-AI for your job searches and applications.</p>
+                    <p class="intro-desc" id="introDesc">Whether you're looking for the right job, fine-tuning your CV, or ready to apply — I'm here to help.</p>
+                  </div>
+                  <div class="suggestions" id="suggestions">
+                    <div class="sugg-head" id="suggHead">
+                      <span>Suggestions</span>
+                      <span class="tracker"><i class="on"></i><i></i><i></i></span>
+                    </div>
+                    <div class="sugg-row">
+                      <div class="prompt" id="prompt1">
+                        <img src="assets/icon-fire.svg" alt="" class="prompt-icon" id="p1Icon" />
+                        <span class="prompt-label" id="p1Label">Show my strongest matches and why</span>
+                        <img src="assets/icon-arrow-up.svg" alt="" class="prompt-arrow" id="p1Arrow" />
+                      </div>
+                      <div class="prompt" id="prompt2">
+                        <img src="assets/icon-suggest.svg" alt="" class="prompt-icon" />
+                        <span class="prompt-label">Help me understand my results</span>
+                        <img src="assets/icon-arrow-up.svg" alt="" class="prompt-arrow" />
+                      </div>
+                      <div class="prompt" id="prompt3">
+                        <img src="assets/icon-fire.svg" alt="" class="prompt-icon" />
+                        <span class="prompt-label">Get answers about my job search</span>
+                        <img src="assets/icon-arrow-up.svg" alt="" class="prompt-arrow" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <!-- Persistent interaction area (shared by intro + matches) -->
+                <div class="interaction" id="interaction">
+                  <div class="ask">
+                    <span class="ask-ph">Ask anything...</span>
+                    <span class="ask-send"><img src="assets/icon-arrow-up.svg" alt="" /></span>
+                  </div>
+                  <p class="disclaimer">Lisa is an AI assistant and may make mistakes.<br />Learn more in our <u>Privacy Policy</u> and our <u>AI-FAQ</u>s.</p>
+                </div>
+              </section>
+
+              <!-- ═════════ STATE 5: Personalised matches ═════════ -->
+              <section class="chat" id="chat">
+                <div class="chat-inner" id="chatInner">
+                  <div class="bubble" id="bubble"><span>Show my strongest matches and why</span></div>
+                  <p class="answer" id="answer">Focusing on roles that lean into that "Design Engineering" hybrid you’re after—where the AI isn't just a feature, but core to the product.</p>
+                  <div class="suggested">
+                    <div class="matches" id="matches">
+                      <div class="match">
+                        <div class="match-head" id="m1Head">
+                          <span class="co-logo co-logo--lg"><img src="assets/logo-synthesia.jpg" alt="" /></span>
+                          <span class="match-names"><span>Synthesia</span><b>Principal Product Designer</b></span>
+                          <img src="assets/icon-chevron-down.svg" alt="" class="match-chev" />
+                        </div>
+                        <span class="fit" id="m1Fit"><i class="bar"><b></b><b></b><b></b></i><span class="fit-text">High interview chance!</span></span>
+                        <div class="match-actions" id="m1Act">
+                          <span class="btn-sm btn-sm--secondary">View job detail</span>
+                          <span class="btn-sm btn-sm--primary">Apply</span>
+                        </div>
+                      </div>
+                      <i class="divider" id="mDivider"></i>
+                      <div class="match">
+                        <div class="match-head" id="m2Head">
+                          <span class="co-logo co-logo--lg"><img src="assets/logo-faculty.jpg" alt="" /></span>
+                          <span class="match-names"><span>Faculty</span><b>Senior/Staff Product Designer</b></span>
+                          <img src="assets/icon-chevron-down.svg" alt="" class="match-chev" />
+                        </div>
+                        <span class="fit" id="m2Fit"><i class="bar"><b></b><b></b><b></b></i><span class="fit-text">High interview chance!</span></span>
+                        <div class="match-actions" id="m2Act">
+                          <span class="btn-sm btn-sm--secondary">View job detail</span>
+                          <span class="btn-sm btn-sm--primary">Apply</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="reactions" id="reactions">
+                      <span><img src="assets/icon-thumbs-up.svg" alt="" /></span>
+                      <span><img src="assets/icon-thumbs-down.svg" alt="" /></span>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              <!-- ═════════ TOP LAYER: shared elements in flight ═════════ -->
+              <div class="ai-spin" id="aiSpin">
+                <span class="ai-ring" id="aiRing"></span>
+                <img class="spin24" id="aiSpinImg" src="assets/ai-spinner.svg" alt="" />
+              </div>
+              <span class="ghost" id="ghostJob">Product Manager</span>
+              <span class="ghost" id="ghostLoc">London</span>
+              <span class="touch" id="touch"></span>
+              <div class="curtain" id="curtain"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═════════ PLAYER CONTROLS ═════════ -->
+      <div class="controls" id="controls">
+        <div class="transport">
+          <button type="button" class="ctl ctl-play" id="playBtn" aria-label="Pause">
+            <svg viewBox="0 0 16 16" class="ic-pause"><rect x="3.5" y="2.5" width="3" height="11" rx="1"/><rect x="9.5" y="2.5" width="3" height="11" rx="1"/></svg>
+            <svg viewBox="0 0 16 16" class="ic-play"><path d="M4.5 2.9v10.2a.6.6 0 0 0 .92.5l8-5.1a.6.6 0 0 0 0-1l-8-5.1a.6.6 0 0 0-.92.5Z"/></svg>
+          </button>
+          <button type="button" class="ctl" id="restartBtn" aria-label="Restart">
+            <svg viewBox="0 0 16 16"><path d="M3 8a5 5 0 1 0 1.6-3.7M3 2.5v2.8h2.8" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <div class="scrub">
+            <div class="scenes" id="scenes"></div>
+            <input type="range" id="scrub" min="0" max="40" step="0.01" value="0" aria-label="Timeline" />
+          </div>
+          <span class="time" id="time">0:00 / 0:40</span>
+          <button type="button" class="ctl ctl-text" id="settingsBtn" aria-expanded="false">Motion</button>
+        </div>
+
+        <form class="params" id="params" hidden>
+          <label>Transition duration <output data-for="speed"></output>
+            <input type="range" name="speed" min="0.6" max="1.6" step="0.05" value="1" /></label>
+          <label>Scene hold <output data-for="hold"></output>
+            <input type="range" name="hold" min="0.6" max="1.6" step="0.05" value="1" /></label>
+          <label>Stagger <output data-for="stagger"></output>
+            <input type="range" name="stagger" min="0" max="160" step="5" value="70" /></label>
+          <label>Modal start scale <output data-for="modalScale"></output>
+            <input type="range" name="modalScale" min="0.9" max="1" step="0.005" value="0.97" /></label>
+          <label>Card entrance distance <output data-for="cardDist"></output>
+            <input type="range" name="cardDist" min="0" max="40" step="1" value="16" /></label>
+          <label>Easing
+            <select name="easing">
+              <option value="calm" selected>Calm (default)</option>
+              <option value="crisp">Crisp</option>
+              <option value="soft">Soft</option>
+            </select></label>
+          <label class="check"><input type="checkbox" name="touch" checked /> Touch indicator</label>
+          <label class="check"><input type="checkbox" name="camera" checked /> Camera drift</label>
+          <label class="check"><input type="checkbox" name="loop" checked /> Loop</label>
+          <label class="check"><input type="checkbox" name="reduced" /> Reduced-motion version</label>
+          <button type="reset" class="ctl ctl-text">Reset</button>
+        </form>
+      </div>
+    </main>
+
+    <script src="demo.js?v=2"></script>
+  </body>
+</html>

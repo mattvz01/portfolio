@@ -1,0 +1,12 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="AI Spinner">
+<path id="Icon" d="M24 12C24 18.6274 18.6274 24 12 24C5.37259 24 2.95642e-06 18.6274 2.95642e-06 12C2.95642e-06 5.37258 5.37259 8.58275e-07 12 8.58275e-07C18.6274 8.58275e-07 24 5.37258 24 12ZM3 12C3 16.9706 7.02944 21 12 21C16.9706 21 21 16.9706 21 12C21 7.02944 16.9706 3 12 3C7.02944 3 3 7.02944 3 12Z" fill="url(#paint0_linear_0_368)"/>
+</g>
+<defs>
+<linearGradient id="paint0_linear_0_368" x1="18.9" y1="2.25" x2="5.02501" y2="21.75" gradientUnits="userSpaceOnUse">
+<stop stop-color="#FF9E8C"/>
+<stop offset="0.5" stop-color="#F0F0E7"/>
+<stop offset="1" stop-color="#29D3DF"/>
+</linearGradient>
+</defs>
+</svg>

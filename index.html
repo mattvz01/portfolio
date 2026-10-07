@@ -41,7 +41,7 @@
       href="https://fonts.googleapis.com/css2?family=Hind:wght@600&family=Press+Start+2P&family=Yellowtail&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="styles.css?v=127" />
+    <link rel="stylesheet" href="styles.css?v=128" />
   </head>
   <body>
     <!-- Everything above the footer lifts away to reveal the footer drawer. -->
@@ -146,13 +146,15 @@
       <section id="work" class="section work">
         <div class="work-grid">
           <article class="work-item">
-            <div class="work-image" data-tint="a">
-              <img
-                src="images/work/stepstone.jpg"
-                alt="Stepstone"
-                onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
-              />
-              <span class="work-image-fallback">Add image → images/work/stepstone.jpg</span>
+            <div class="work-image work-image--demo" data-tint="a">
+              <!-- Looping product demo (demos/stepstone). Shows a still
+                   instead when the visitor prefers reduced motion. -->
+              <iframe
+                src="demos/stepstone/?embed=1&amp;v=3"
+                title="Stepstone AI job search — product demo"
+                loading="lazy"
+                tabindex="-1"
+              ></iframe>
             </div>
             <div class="work-meta">
               <h3 class="work-title">Stepstone</h3>
@@ -304,6 +306,6 @@
       </div>
     </footer>
 
-    <script src="main.js?v=127"></script>
+    <script src="main.js?v=128"></script>
   </body>
 </html>

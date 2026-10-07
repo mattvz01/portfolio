@@ -580,6 +580,17 @@ main {
   transform: scale(1.04);
 }
 
+/* Live product demo in place of a still. The card stays the hover/click
+   target, so the frame ignores pointer events. */
+.work-image--demo iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  pointer-events: none;
+}
+
 .work-image-fallback {
   display: none; /* shown via onerror when the image is missing */
   position: absolute;
