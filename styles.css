@@ -591,6 +591,20 @@ main {
   pointer-events: none;
 }
 
+/* Hover: a barely-there veil over the demo, matching the zoom the still cards get. */
+.work-image--demo::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(10, 14, 40, 0.06);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.work-item:hover .work-image--demo::after {
+  opacity: 1;
+}
+
 .work-image-fallback {
   display: none; /* shown via onerror when the image is missing */
   position: absolute;
